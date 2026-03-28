@@ -5,11 +5,12 @@
  * Permite selecionar plano, adicionais e pacotes para simular entitlements
  */
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Select,
   SelectContent,
@@ -28,12 +29,12 @@ import {
   Package,
   Plus,
   Check,
-  X,
   ChevronDown,
+  Loader2,
 } from "lucide-react"
 import { 
   useOrganizacaoStore,
-  useEntitlements,
+  useStoreHydration,
 } from "@/store/organizacao"
 import { 
   PLANOS, 
@@ -51,6 +52,7 @@ const CORES_PLANO: Record<NomePlano, string> = {
 
 export function SeletorPlano() {
   const [aberto, setAberto] = useState(false)
+  const hydrated = useStoreHydration()
   const { 
     configuracao, 
     definirPlano, 
@@ -61,6 +63,16 @@ export function SeletorPlano() {
   } = useOrganizacaoStore()
   
   const planoAtual = PLANOS[configuracao.plano]
+
+  // Mostra loading enquanto não hidrata
+  if (!hydrated) {
+    return (
+      <Button variant="outline" size="sm" disabled className="gap-2 opacity-50">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        <span className="hidden sm:inline">Carregando...</span>
+      </Button>
+    )
+  }
 
   const toggleAdicional = (adicionalId: NomeAdicional) => {
     if (configuracao.adicionais.includes(adicionalId)) {

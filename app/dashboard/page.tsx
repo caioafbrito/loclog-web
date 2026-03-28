@@ -104,8 +104,8 @@ const recentOrders = [
 const quickActions = [
   { name: "Novo Pedido", href: "/dashboard/pedidos/novo", icon: Package, color: "bg-[#905BF4]" },
   { name: "Novo Orçamento", href: "/dashboard/orcamentos/novo", icon: Calculator, color: "bg-[#4E2BCC]" },
-  { name: "Emitir Documento", href: "/dashboard/contabil/novo", icon: FileText, color: "bg-[#0F032D]" },
-  { name: "Cobrar", href: "/dashboard/financeiro/cobranca", icon: CreditCard, color: "bg-green-600" },
+  { name: "Emitir Documento", href: "/dashboard/documentos", icon: FileText, color: "bg-[#0F032D]" },
+  { name: "Cobrar", href: "/dashboard/cobranca", icon: CreditCard, color: "bg-green-600" },
 ]
 
 const statusConfig = {

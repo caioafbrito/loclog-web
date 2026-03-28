@@ -122,19 +122,26 @@ export default function LogisticaPage() {
   const [selectedDriver, setSelectedDriver] = useState("all")
   const [selectedDelivery, setSelectedDelivery] = useState<typeof mockDeliveries[0] | null>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+  const [deliveries, setDeliveries] = useState(mockDeliveries)
 
-  const filteredDeliveries = mockDeliveries.filter(delivery => {
+  const filteredDeliveries = deliveries.filter(delivery => {
     if (selectedDriver === "all") return true
     return delivery.driver === selectedDriver
   })
+  
+  const handleAvancarStatus = (id: string, novoStatus: string) => {
+    setDeliveries(prev => prev.map(d => 
+      d.id === id ? { ...d, status: novoStatus } : d
+    ))
+  }
 
   const stats = {
-    total: mockDeliveries.length,
-    pending: mockDeliveries.filter(d => d.status === "pendente").length,
-    inRoute: mockDeliveries.filter(d => d.status === "em_rota").length,
-    completed: mockDeliveries.filter(d => d.status === "concluido").length,
-    deliveries: mockDeliveries.filter(d => d.type === "entrega").length,
-    pickups: mockDeliveries.filter(d => d.type === "retirada").length
+    total: deliveries.length,
+    pending: deliveries.filter(d => d.status === "pendente").length,
+    inRoute: deliveries.filter(d => d.status === "em_rota").length,
+    completed: deliveries.filter(d => d.status === "concluido" || d.status === "entregue" || d.status === "retirado").length,
+    deliveries: deliveries.filter(d => d.type === "entrega").length,
+    pickups: deliveries.filter(d => d.type === "retirada").length
   }
 
   const getStatusBadge = (status: string) => {
@@ -143,6 +150,10 @@ export default function LogisticaPage() {
         return <Badge className="bg-yellow-100 text-yellow-800">Pendente</Badge>
       case "em_rota":
         return <Badge className="bg-blue-100 text-blue-800">Em Rota</Badge>
+      case "entregue":
+        return <Badge className="bg-purple-100 text-purple-800">Entregue</Badge>
+      case "retirado":
+        return <Badge className="bg-purple-100 text-purple-800">Retirado</Badge>
       case "concluido":
         return <Badge className="bg-green-100 text-green-800">Concluído</Badge>
       default:
@@ -290,77 +301,101 @@ export default function LogisticaPage() {
             {selectedDate && format(selectedDate, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Table>
+        <CardContent className="overflow-x-auto">
+          <Table className="min-w-[900px]">
             <TableHeader>
               <TableRow>
-                <TableHead>Horário</TableHead>
-                <TableHead>Pedido</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Endereço</TableHead>
-                <TableHead>Itens</TableHead>
-                <TableHead>Pagamento</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Ações</TableHead>
+                <TableHead className="w-20">Horário</TableHead>
+                <TableHead className="w-24">Pedido</TableHead>
+                <TableHead className="w-20">Tipo</TableHead>
+                <TableHead className="w-32">Cliente</TableHead>
+                <TableHead className="w-48">Endereço</TableHead>
+                <TableHead className="w-16 text-center">Itens</TableHead>
+                <TableHead className="w-24">Pagamento</TableHead>
+                <TableHead className="w-24">Status</TableHead>
+                <TableHead className="w-32">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredDeliveries.map((delivery) => (
                 <TableRow key={delivery.id} className={delivery.status === "concluido" ? "opacity-60" : ""}>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">{delivery.scheduledTime}</span>
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3 w-3 text-muted-foreground shrink-0" />
+                      <span className="text-sm font-medium">{delivery.scheduledTime}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium text-[#905BF4]">{delivery.orderId}</TableCell>
+                  <TableCell className="font-medium text-[#905BF4] text-sm">{delivery.orderId}</TableCell>
                   <TableCell>{getTypeBadge(delivery.type)}</TableCell>
                   <TableCell>
-                    <div>
-                      <span className="font-medium">{delivery.customer}</span>
+                    <div className="max-w-[120px]">
+                      <span className="font-medium text-sm truncate block">{delivery.customer}</span>
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Phone className="h-3 w-3" />
-                        {delivery.phone}
+                        <Phone className="h-3 w-3 shrink-0" />
+                        <span className="truncate">{delivery.phone}</span>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="max-w-[200px]">
-                      <span className="text-sm">{delivery.address}</span>
-                      <span className="block text-xs text-muted-foreground">{delivery.city}</span>
+                    <div className="max-w-[180px]">
+                      <span className="text-sm truncate block">{delivery.address}</span>
+                      <span className="text-xs text-muted-foreground truncate block">{delivery.city}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-center">{delivery.items}</TableCell>
+                  <TableCell className="text-center text-sm">{delivery.items}</TableCell>
                   <TableCell>{getPaymentBadge(delivery.paymentStatus)}</TableCell>
                   <TableCell>{getStatusBadge(delivery.status)}</TableCell>
                   <TableCell>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 flex-wrap">
                       <Button 
-                        size="sm" 
+                        size="icon" 
                         variant="outline"
+                        className="h-7 w-7"
                         onClick={() => openInMaps(`${delivery.address}, ${delivery.city}`)}
+                        title="Abrir no mapa"
                       >
-                        <Navigation className="h-4 w-4" />
+                        <Navigation className="h-3 w-3" />
                       </Button>
                       <Button 
-                        size="sm" 
+                        size="icon" 
                         variant="outline"
+                        className="h-7 w-7"
                         onClick={() => {
                           setSelectedDelivery(delivery)
                           setIsDetailsOpen(true)
                         }}
+                        title="Ver detalhes"
                       >
-                        Detalhes
+                        <AlertCircle className="h-3 w-3" />
                       </Button>
                       {delivery.status === "pendente" && (
-                        <Button size="sm" className="bg-[#905BF4] hover:bg-[#4E2BCC]">
-                          <Play className="h-4 w-4" />
+                        <Button 
+                          size="sm" 
+                          className="h-7 bg-[#905BF4] hover:bg-[#4E2BCC] text-xs"
+                          onClick={() => handleAvancarStatus(delivery.id, "em_rota")}
+                        >
+                          <Play className="h-3 w-3 mr-1" />
+                          Iniciar
                         </Button>
                       )}
                       {delivery.status === "em_rota" && (
-                        <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                          <CheckCircle className="h-4 w-4" />
+                        <Button 
+                          size="sm" 
+                          className="h-7 bg-green-600 hover:bg-green-700 text-xs"
+                          onClick={() => handleAvancarStatus(delivery.id, delivery.type === "entrega" ? "entregue" : "retirado")}
+                        >
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          {delivery.type === "entrega" ? "Entregar" : "Retirar"}
+                        </Button>
+                      )}
+                      {(delivery.status === "entregue" || delivery.status === "retirado") && (
+                        <Button 
+                          size="sm" 
+                          className="h-7 bg-[#0F032D] hover:bg-[#0F032D]/80 text-xs"
+                          onClick={() => handleAvancarStatus(delivery.id, "concluido")}
+                        >
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Concluir
                         </Button>
                       )}
                     </div>

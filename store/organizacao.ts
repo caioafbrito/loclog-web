@@ -4,7 +4,8 @@
  */
 
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
+import { useEffect, useState } from 'react'
 import type { 
   NomePlano, 
   NomeAdicional, 
@@ -20,6 +21,10 @@ interface OrganizacaoState {
   
   // Entitlements calculados
   entitlements: Entitlements
+  
+  // Flag de hidratação
+  _hasHydrated: boolean
+  setHasHydrated: (state: boolean) => void
   
   // Ações
   definirPlano: (plano: NomePlano) => void
@@ -41,6 +46,8 @@ export const useOrganizacaoStore = create<OrganizacaoState>()(
     (set, get) => ({
       configuracao: configuracaoPadrao,
       entitlements: calcularEntitlements(configuracaoPadrao),
+      _hasHydrated: false,
+      setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
 
       definirPlano: (plano: NomePlano) => {
         const novaConfig = { ...get().configuracao, plano }
@@ -111,6 +118,10 @@ export const useOrganizacaoStore = create<OrganizacaoState>()(
     }),
     {
       name: 'loclog-organizacao',
+      storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true)
+      },
     }
   )
 )
@@ -118,6 +129,33 @@ export const useOrganizacaoStore = create<OrganizacaoState>()(
 // ============================================================
 // HOOKS DE CONVENIÊNCIA
 // ============================================================
+
+/**
+ * Hook para aguardar hidratação do store
+ * Evita problemas de SSR/hidratação onde o estado inicial difere do localStorage
+ */
+export function useStoreHydration() {
+  const [hydrated, setHydrated] = useState(false)
+  const hasHydrated = useOrganizacaoStore(state => state._hasHydrated)
+
+  useEffect(() => {
+    // Força verificação após montagem
+    const unsubFinishHydration = useOrganizacaoStore.persist.onFinishHydration(() => {
+      setHydrated(true)
+    })
+
+    // Se já hidratou, seta direto
+    if (hasHydrated) {
+      setHydrated(true)
+    }
+
+    return () => {
+      unsubFinishHydration()
+    }
+  }, [hasHydrated])
+
+  return hydrated
+}
 
 export function useEntitlements() {
   return useOrganizacaoStore(state => state.entitlements)

@@ -152,27 +152,29 @@ export default function DashboardLayout({
         >
           {/* Logo */}
           <div className={cn(
-            "flex h-14 items-center justify-between border-b border-white/10",
-            sidebarRecolhida ? "px-2" : "px-4"
+            "flex h-16 items-center justify-between border-b border-white/10",
+            sidebarRecolhida ? "px-3" : "px-5"
           )}>
             <Link href="/dashboard" className="flex items-center">
               {sidebarRecolhida ? (
                 <Image
                   src={ICON_WHITE}
                   alt="LocLog"
-                  width={28}
-                  height={28}
+                  width={24}
+                  height={24}
                   className="rounded"
-                  style={{ width: "28px", height: "28px", objectFit: "contain" }}
+                  style={{ width: "24px", height: "24px", objectFit: "contain" }}
                 />
               ) : (
                 <Image
                   src={LOGO_WHITE}
                   alt="LocLog"
-                  width={100}
-                  height={40}
-                  className="h-8 w-auto"
-                  style={{ width: "auto", height: "auto", objectFit: "contain" }}
+                  width={88}
+                  height={35}
+                  className="w-auto"
+                  style={{ width: "auto", height: "28px", objectFit: "contain" }}
+                  priority
+                  loading="eager"
                 />
               )}
             </Link>
