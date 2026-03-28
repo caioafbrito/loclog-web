@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Package,
   Truck,
@@ -41,6 +42,7 @@ import {
   Star,
   Building2,
   Code,
+  LayoutDashboard,
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -48,67 +50,66 @@ import Image from "next/image"
 // Logo URLs
 const LOGO_HEADER = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Logotipo%20Loc%20Escuro%20%2B%20Log%20Roxo%20%2B%20Fundo%20Transparente%20%28Sem%20O%20com%20efeito%29-zzsT8fVYTnKNCGTlJeBVANDUnNvRfD.png"
 const LOGO_FOOTER = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Logotipo%20Branco%20%2B%20Fundo%20Transparente%20%28Sem%20O%20com%20efeito%29-2zkcgX2G3n8UrYsauTJMCYFZuWEHbX.png"
-const ICON_ROXO = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/I%CC%81cone%20Roxo%20%2B%20Fundo%20Transparente-DRf94agPZBS6AOuz7GYDcSITbW4ko7.png"
 
 const modules = [
   {
     icon: Settings,
-    title: "Configuracao",
-    description: "Cadastre os dados da sua empresa para integracao com os outros modulos do sistema.",
+    title: "Configuração",
+    description: "Cadastre os dados da sua empresa para integração com os outros módulos do sistema.",
     color: "from-[#905BF4] to-[#4E2BCC]",
   },
   {
     icon: Users,
     title: "Contato",
-    description: "Gerencie todos os seus clientes e contatos em um so lugar, com categorizacao automatica.",
+    description: "Gerencie todos os seus clientes e contatos em um só lugar, com categorização automática.",
     color: "from-[#4E2BCC] to-[#0F032D]",
   },
   {
     icon: Calculator,
-    title: "Orcamento",
-    description: "Crie orcamentos profissionais com geracao automatica de documentos em PDF.",
+    title: "Orçamento",
+    description: "Crie orçamentos profissionais com geração automática de documentos em PDF.",
     color: "from-[#905BF4] to-[#4E2BCC]",
   },
   {
     icon: Package,
     title: "Pedido",
-    description: "O modulo central que orquestra pagamentos, estoque, contabilidade e logistica.",
+    description: "O módulo central que orquestra pagamentos, estoque, contabilidade e logística.",
     color: "from-[#4E2BCC] to-[#0F032D]",
   },
   {
     icon: Truck,
-    title: "Logistica",
-    description: "Navegacao integrada com Google Maps, controle de entregas e retiradas em tempo real.",
+    title: "Logística",
+    description: "Navegação integrada com Google Maps, controle de entregas e retiradas em tempo real.",
     color: "from-[#905BF4] to-[#4E2BCC]",
   },
   {
     icon: Warehouse,
-    title: "Inventario & Armazens",
-    description: "Gerencie multiplos armazens, controle de estoque por localizacao e relatorios consolidados.",
+    title: "Inventário & Armazéns",
+    description: "Gerencie múltiplos armazéns, controle de estoque por localização e relatórios consolidados.",
     color: "from-[#4E2BCC] to-[#0F032D]",
   },
   {
     icon: BarChart3,
     title: "Estoque",
-    description: "Controle de disponibilidade por periodo, planejamento e gestao de estoque de aluguel e venda.",
+    description: "Controle de disponibilidade por período, planejamento e gestão de estoque de aluguel e venda.",
     color: "from-[#905BF4] to-[#4E2BCC]",
   },
   {
     icon: CreditCard,
     title: "Financeiro",
-    description: "Gestao de faturas, contas fixas e variaveis, saldo de parceiros e relatorios completos.",
+    description: "Gestão de faturas, contas fixas e variáveis, saldo de parceiros e relatórios completos.",
     color: "from-[#4E2BCC] to-[#0F032D]",
   },
   {
     icon: FileText,
-    title: "Contabil",
-    description: "Notas fiscais, faturas de locacao e contratos gerados automaticamente.",
+    title: "Contábil",
+    description: "Notas fiscais, faturas de locação e contratos gerados automaticamente.",
     color: "from-[#905BF4] to-[#4E2BCC]",
   },
   {
     icon: HandshakeIcon,
     title: "Programa de Parceiros",
-    description: "Conecte-se com outros locadores e aumente seu faturamento com parcerias estrategicas.",
+    description: "Conecte-se com outros locadores e aumente seu faturamento com parcerias estratégicas.",
     color: "from-[#4E2BCC] to-[#0F032D]",
   },
 ]
@@ -116,13 +117,13 @@ const modules = [
 const features = [
   {
     icon: Zap,
-    title: "Automatizacao Total",
+    title: "Automatização Total",
     description: "Gere contratos, notas fiscais e faturas com apenas 1 clique.",
   },
   {
     icon: Shield,
-    title: "Cobranca Segura",
-    description: "PIX, cartao de credito, boleto e maquininha com baixa automatica.",
+    title: "Cobrança Segura",
+    description: "PIX, cartão de crédito, boleto e maquininha com baixa automática.",
   },
   {
     icon: Clock,
@@ -131,8 +132,8 @@ const features = [
   },
   {
     icon: Map,
-    title: "Logistica Integrada",
-    description: "Navegacao GPS e controle de entregas direto no aplicativo.",
+    title: "Logística Integrada",
+    description: "Navegação GPS e controle de entregas direto no aplicativo.",
   },
 ]
 
@@ -142,7 +143,7 @@ const benefits = [
   "Programa de parcerias exclusivo",
   "Suporte dedicado",
   "Comunidade de locadores",
-  "Atualizacoes constantes",
+  "Atualizações constantes",
 ]
 
 // Dados dos planos
@@ -154,15 +155,15 @@ const plans = [
     yearlyPrice: "R$ 199",
     yearlyTotal: "R$ 2.338/ano",
     discount: "20%",
-    description: "Ideal para quem esta comecando",
+    description: "Ideal para quem está começando",
     available: true,
-    launchDate: "Lancamento",
+    launchDate: "Lançamento",
     highlights: [
-      "Ate 150 reservas/mes",
-      "1 usuario",
-      "Gestao de orcamentos e pedidos",
-      "Cobranca online via PIX",
-      "Emissao de contratos",
+      "Até 150 reservas/mês",
+      "1 usuário",
+      "Gestão de orçamentos e pedidos",
+      "Cobrança online via PIX",
+      "Emissão de contratos",
       "Suporte via WhatsApp",
     ],
   },
@@ -175,16 +176,16 @@ const plans = [
     discount: "15%",
     description: "Para locadoras em crescimento",
     available: true,
-    launchDate: "Lancamento",
+    launchDate: "Lançamento",
     popular: true,
     highlights: [
-      "Ate 500 reservas/mes",
-      "Ate 5 usuarios",
+      "Até 500 reservas/mês",
+      "Até 5 usuários",
       "Tudo do Starter +",
-      "Gestao de equipe e entregadores",
+      "Gestão de equipe e entregadores",
       "Controle de estoque completo",
-      "Rotas logisticas e GPS",
-      "Relatorios avancados",
+      "Rotas logísticas e GPS",
+      "Relatórios avançados",
       "Produtos para venda",
     ],
   },
@@ -195,17 +196,17 @@ const plans = [
     yearlyPrice: "R$ 639",
     yearlyTotal: "R$ 7.668/ano",
     discount: "15%",
-    description: "Para grandes operacoes",
+    description: "Para grandes operações",
     available: false,
     launchDate: "Janeiro 2027",
     highlights: [
       "Reservas ilimitadas",
-      "Usuarios ilimitados",
+      "Usuários ilimitados",
       "Tudo do Pro +",
-      "Gestao de multiplos armazens",
+      "Gestão de múltiplos armazéns",
       "Chat com clientes",
-      "Curso em video exclusivo",
-      "SLA prioritario",
+      "Curso em vídeo exclusivo",
+      "SLA prioritário",
     ],
   },
   {
@@ -215,13 +216,13 @@ const plans = [
     yearlyPrice: null,
     yearlyTotal: null,
     discount: null,
-    description: "Solucoes personalizadas",
+    description: "Soluções personalizadas",
     available: false,
     launchDate: "Julho 2027",
     highlights: [
       "Tudo do Enterprise +",
-      "Integracoes personalizadas",
-      "Acesso completo a API",
+      "Integrações personalizadas",
+      "Acesso completo à API",
       "SLA personalizado",
       "Desenvolvimento sob demanda",
     ],
@@ -234,40 +235,41 @@ const comparisonData = {
     {
       name: "Disponibilidade",
       features: [
-        { name: "Disponivel no lancamento", starter: true, pro: true, enterprise: false, develop: false },
-        { name: "Data prevista", starter: "Lancamento", pro: "Lancamento", enterprise: "Janeiro 2027", develop: "Julho 2027" },
+        { name: "Disponível no lançamento", starter: true, pro: true, enterprise: false, develop: false },
+        { name: "Data prevista", starter: "Lançamento", pro: "Lançamento", enterprise: "Janeiro 2027", develop: "Julho 2027" },
       ],
     },
     {
       name: "Limites",
       features: [
-        { name: "Maximo de reservas", starter: "150", pro: "500", enterprise: "Ilimitado", develop: "Ilimitado" },
+        { name: "Máximo de reservas", starter: "150", pro: "500", enterprise: "Ilimitado", develop: "Ilimitado" },
         { name: "Excedente por reserva", starter: "R$ 2,00", pro: "R$ 1,50", enterprise: "N/A", develop: "N/A" },
-        { name: "Maximo de usuarios", starter: "1", pro: "5", enterprise: "Ilimitado", develop: "Ilimitado" },
-        { name: "Excedente por usuario/mes", starter: "R$ 59,00", pro: "R$ 59,00", enterprise: "N/A", develop: "N/A" },
+        { name: "Valor limite (upgrade auto)", starter: "R$ 449,00", pro: "R$ 749,00", enterprise: "N/A", develop: "N/A" },
+        { name: "Máximo de usuários", starter: "1", pro: "5", enterprise: "Ilimitado", develop: "Ilimitado" },
+        { name: "Excedente por usuário/mês", starter: "R$ 59,00", pro: "R$ 59,00", enterprise: "N/A", develop: "N/A" },
       ],
     },
     {
-      name: "Gestao Basica",
+      name: "Gestão Básica",
       features: [
-        { name: "Gestao de contatos", starter: true, pro: true, enterprise: true, develop: true },
-        { name: "Gestao de usuarios", starter: false, pro: true, enterprise: true, develop: true },
-        { name: "Gestao de equipe", starter: false, pro: false, enterprise: true, develop: true },
+        { name: "Gestão de contatos", starter: true, pro: true, enterprise: true, develop: true },
+        { name: "Gestão de usuários", starter: false, pro: true, enterprise: true, develop: true },
+        { name: "Gestão de equipe", starter: false, pro: false, enterprise: true, develop: true },
       ],
     },
     {
-      name: "Orcamentos",
+      name: "Orçamentos",
       features: [
-        { name: "Gestao de orcamentos", starter: true, pro: true, enterprise: true, develop: true },
-        { name: "Gerar PDF de orcamento", starter: true, pro: true, enterprise: true, develop: true },
-        { name: "Gerar texto de orcamento", starter: true, pro: true, enterprise: true, develop: true },
-        { name: "Reservar orcamento", starter: true, pro: true, enterprise: true, develop: true },
+        { name: "Gestão de orçamentos", starter: true, pro: true, enterprise: true, develop: true },
+        { name: "Gerar PDF de orçamento", starter: true, pro: true, enterprise: true, develop: true },
+        { name: "Gerar texto de orçamento", starter: true, pro: true, enterprise: true, develop: true },
+        { name: "Reservar orçamento", starter: true, pro: true, enterprise: true, develop: true },
       ],
     },
     {
       name: "Pedidos",
       features: [
-        { name: "Gestao de pedidos", starter: true, pro: true, enterprise: true, develop: true },
+        { name: "Gestão de pedidos", starter: true, pro: true, enterprise: true, develop: true },
         { name: "Gerar PDF de pedido", starter: true, pro: true, enterprise: true, develop: true },
         { name: "Gerar PDF de entrega", starter: false, pro: true, enterprise: true, develop: true },
         { name: "Definir entregador de pedido", starter: false, pro: true, enterprise: true, develop: true },
@@ -276,20 +278,20 @@ const comparisonData = {
     {
       name: "Financeiro",
       features: [
-        { name: "Cobrar online (PIX, cartao)", starter: true, pro: true, enterprise: true, develop: true },
+        { name: "Cobrar online (PIX, cartão)", starter: true, pro: true, enterprise: true, develop: true },
         { name: "Realizar pagamento", starter: false, pro: false, enterprise: true, develop: true },
-        { name: "Baixa automatica no financeiro", starter: true, pro: true, enterprise: true, develop: true },
+        { name: "Baixa automática no financeiro", starter: true, pro: true, enterprise: true, develop: true },
         { name: "Gerenciar faturas", starter: true, pro: true, enterprise: true, develop: true },
         { name: "Consultar status financeiro", starter: true, pro: true, enterprise: true, develop: true },
       ],
     },
     {
-      name: "Logistica",
+      name: "Logística",
       features: [
-        { name: "Atualizar status logistico", starter: true, pro: true, enterprise: true, develop: true },
-        { name: "Criar rota logistica", starter: false, pro: true, enterprise: true, develop: true },
+        { name: "Atualizar status logístico", starter: true, pro: true, enterprise: true, develop: true },
+        { name: "Criar rota logística", starter: false, pro: true, enterprise: true, develop: true },
         { name: "Gerenciar rotas", starter: false, pro: true, enterprise: true, develop: true },
-        { name: "Visualizar localizacao dos entregadores", starter: false, pro: true, enterprise: true, develop: true },
+        { name: "Visualizar localização dos entregadores", starter: false, pro: true, enterprise: true, develop: true },
         { name: "Conversar com entregador", starter: false, pro: true, enterprise: true, develop: true },
         { name: "Visualizar andamento de rota", starter: false, pro: true, enterprise: true, develop: true },
         { name: "Iniciar rota", starter: false, pro: true, enterprise: true, develop: true },
@@ -302,7 +304,7 @@ const comparisonData = {
         { name: "Gerenciar produtos", starter: true, pro: true, enterprise: true, develop: true },
         { name: "Habilitar produto para aluguel", starter: true, pro: true, enterprise: true, develop: true },
         { name: "Habilitar produto para venda", starter: false, pro: true, enterprise: true, develop: true },
-        { name: "Gerenciar armazens", starter: false, pro: false, enterprise: true, develop: true },
+        { name: "Gerenciar armazéns", starter: false, pro: false, enterprise: true, develop: true },
         { name: "Atualizar estoque de aluguel", starter: false, pro: true, enterprise: true, develop: true },
         { name: "Atualizar estoque de venda", starter: false, pro: true, enterprise: true, develop: true },
         { name: "Consultar estoque real e estimado", starter: false, pro: true, enterprise: true, develop: true },
@@ -313,52 +315,72 @@ const comparisonData = {
       name: "Recursos Adicionais",
       features: [
         { name: "Emitir contrato", starter: true, pro: true, enterprise: true, develop: true },
-        { name: "Relatorios", starter: false, pro: true, enterprise: true, develop: true },
-        { name: "Documentacao", starter: true, pro: true, enterprise: true, develop: true },
-        { name: "Curso em Video", starter: false, pro: false, enterprise: true, develop: true },
+        { name: "Relatórios", starter: false, pro: true, enterprise: true, develop: true },
+        { name: "Documentação", starter: true, pro: true, enterprise: true, develop: true },
+        { name: "Curso em Vídeo", starter: false, pro: false, enterprise: true, develop: true },
       ],
     },
     {
-      name: "Suporte",
+      name: "Suporte (SLA)",
       features: [
-        { name: "SLA P1 (Critico)", starter: "4 horas", pro: "2 horas", enterprise: "1 hora", develop: "Personalizado" },
-        { name: "SLA P2 (Medio)", starter: "8 horas", pro: "4 horas", enterprise: "2 horas", develop: "Personalizado" },
-        { name: "SLA P3 (Baixo)", starter: "2 dias", pro: "1 dia", enterprise: "4 horas", develop: "Personalizado" },
-        { name: "Canais de atendimento", starter: "WhatsApp, Instagram, E-mail", pro: "WhatsApp, Instagram, E-mail", enterprise: "WhatsApp, Instagram, E-mail", develop: "WhatsApp, Instagram, E-mail" },
+        { name: "P1 - Crítico (sistema fora do ar)", starter: "4 horas", pro: "2 horas", enterprise: "1 hora", develop: "Personalizado" },
+        { name: "P2 - Médio (bugs em módulos)", starter: "8 horas", pro: "4 horas", enterprise: "2 horas", develop: "Personalizado" },
+        { name: "P3 - Baixo (dúvidas/sugestões)", starter: "2 dias úteis", pro: "1 dia útil", enterprise: "4 horas", develop: "Personalizado" },
+        { name: "Canais de atendimento", starter: "WhatsApp, Instagram, E-mail", pro: "WhatsApp, Instagram, E-mail", enterprise: "WhatsApp, Instagram, E-mail", develop: "Todos + Dedicado" },
       ],
     },
     {
       name: "Exclusivo Develop",
       features: [
-        { name: "Integracoes Personalizadas", starter: false, pro: false, enterprise: false, develop: true },
-        { name: "Acesso a API", starter: false, pro: false, enterprise: false, develop: true },
+        { name: "Integrações Personalizadas", starter: false, pro: false, enterprise: false, develop: true },
+        { name: "Acesso à API", starter: false, pro: false, enterprise: false, develop: true },
       ],
     },
   ],
-  addons: [
-    { name: "Emitir NFSe", monthly: "R$ 60,00", available: true },
-    { name: "Emitir fatura de locacao", monthly: "R$ 20,00", available: true },
-    { name: "Emitir NFe (venda)", monthly: "R$ 60,00", available: true },
-    { name: "Emitir NF de remessa de bens", monthly: "R$ 60,00", available: true },
-    { name: "Acesso ao Programa de Parceiros", monthly: "5% por pedido + Taxa Stone", available: false },
-    { name: "Cobrar com maquininha", monthly: "R$ 80,00 + Taxa Stone", available: false },
-    { name: "Chatbot Integrado", monthly: "R$ 400,00", setup: "R$ 1.200,00", available: false },
-  ],
+  addons: {
+    mensal: [
+      { name: "Emitir NFSe", value: "R$ 60,00/mês", available: true, note: "*SLA depende de terceiros" },
+      { name: "Emitir fatura de locação (manual ou automática)", value: "R$ 20,00/mês", available: true, note: "" },
+      { name: "Emitir NFe (venda)", value: "R$ 60,00/mês", available: true, note: "*SLA depende de terceiros" },
+      { name: "Emitir NF de remessa de bens", value: "R$ 60,00/mês", available: true, note: "*SLA depende de terceiros" },
+      { name: "Cobrar com maquininha", value: "R$ 80,00/mês", available: false, note: "*SLA depende de terceiros" },
+      { name: "Chatbot Integrado", value: "R$ 400,00/mês", available: false, note: "*SLA depende de terceiros" },
+    ],
+    taxa: [
+      { name: "Acesso ao Programa de Parceiros", value: "5% por pedido recebido + Taxa Stone", available: false, note: "" },
+      { name: "Cobrar com maquininha", value: "+ Taxa Stone", available: false, note: "" },
+    ],
+    setup: [
+      { name: "Chatbot Integrado", value: "R$ 1.200,00 (único)", available: false, note: "" },
+    ],
+  },
   packages: [
-    { name: "Pacote Contabil", description: "NFSe, NFe, remessa e fatura de locacao", monthly: "R$ 149,00", available: true },
-    { name: "Pacote Parceiro Preparado", description: "Programa de Parceiros + Maquininha", monthly: "5% por pedido + Taxa Stone", available: false },
+    { 
+      name: "Pacote Contábil", 
+      description: "Emissão de NFSe, NFe, remessa e fatura de locação", 
+      value: "R$ 149,00/mês",
+      savings: "Economia de até R$ 51,00/mês",
+      available: true 
+    },
+    { 
+      name: "Pacote Parceiro Preparado", 
+      description: "Programa de Parceiros + Cobrar com maquininha", 
+      value: "5% por pedido + Taxa Stone",
+      savings: "Economize na mensalidade da maquininha",
+      available: false 
+    },
   ],
 }
 
 function FeatureValue({ value }: { value: boolean | string }) {
   if (typeof value === "boolean") {
     return value ? (
-      <Check className="mx-auto h-5 w-5 text-[#905BF4]" />
+      <Check className="h-5 w-5 text-[#905BF4]" />
     ) : (
-      <Minus className="mx-auto h-5 w-5 text-[#0F032D]/30" />
+      <Minus className="h-5 w-5 text-[#0F032D]/30" />
     )
   }
-  return <span className="text-sm text-[#0F032D]">{value}</span>
+  return <span className="text-xs font-medium text-[#0F032D]">{value}</span>
 }
 
 export default function LandingPage() {
@@ -386,10 +408,10 @@ export default function LandingPage() {
                 O Problema
               </Link>
               <Link href="#solucao" className="text-sm font-medium text-[#0F032D] transition-colors hover:text-[#905BF4]">
-                A Solucao
+                A Solução
               </Link>
               <Link href="#modulos" className="text-sm font-medium text-[#0F032D] transition-colors hover:text-[#905BF4]">
-                Modulos
+                Módulos
               </Link>
               <Link href="#planos" className="text-sm font-medium text-[#0F032D] transition-colors hover:text-[#905BF4]">
                 Planos
@@ -399,7 +421,13 @@ export default function LandingPage() {
               </Link>
             </nav>
 
-            <div className="hidden md:block">
+            <div className="hidden items-center gap-3 md:flex">
+              <Button variant="outline" className="border-[#905BF4] text-[#905BF4] hover:bg-[#905BF4]/10" asChild>
+                <Link href="/dashboard">
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  Dashboard
+                </Link>
+              </Button>
               <Button className="bg-[#905BF4] text-white hover:bg-[#4E2BCC]" asChild>
                 <Link href="#planos">
                   Ver Planos
@@ -434,14 +462,14 @@ export default function LandingPage() {
                   className="text-sm font-medium text-[#0F032D] transition-colors hover:text-[#905BF4]"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  A Solucao
+                  A Solução
                 </Link>
                 <Link
                   href="#modulos"
                   className="text-sm font-medium text-[#0F032D] transition-colors hover:text-[#905BF4]"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Modulos
+                  Módulos
                 </Link>
                 <Link
                   href="#planos"
@@ -457,12 +485,20 @@ export default function LandingPage() {
                 >
                   Contato
                 </Link>
-                <Button className="mt-2 w-full bg-[#905BF4] text-white hover:bg-[#4E2BCC]" asChild>
-                  <Link href="#planos">
-                    Ver Planos
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
+                <div className="flex flex-col gap-2 pt-2">
+                  <Button variant="outline" className="w-full border-[#905BF4] text-[#905BF4] hover:bg-[#905BF4]/10" asChild>
+                    <Link href="/dashboard">
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </Button>
+                  <Button className="w-full bg-[#905BF4] text-white hover:bg-[#4E2BCC]" asChild>
+                    <Link href="#planos">
+                      Ver Planos
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
               </nav>
             </div>
           )}
@@ -479,7 +515,7 @@ export default function LandingPage() {
           <div className="mx-auto max-w-4xl text-center">
             <Badge className="mb-6 border-[#905BF4]/30 bg-[#905BF4]/10 text-[#905BF4]">
               <Sparkles className="mr-1 h-3 w-3" />
-              Lancamento em breve
+              Lançamento em breve
             </Badge>
             <h1 className="mb-6 text-4xl font-bold leading-tight tracking-tight text-balance md:text-6xl lg:text-7xl">
               O Sistema que Revoluciona o{" "}
@@ -488,13 +524,13 @@ export default function LandingPage() {
               </span>
             </h1>
             <p className="mx-auto mb-10 max-w-2xl text-lg text-[#EFEFEF]/80 text-pretty md:text-xl">
-              Gerencie pedidos, estoque, financas, logistica e parcerias em um so lugar. 
+              Gerencie pedidos, estoque, finanças, logística e parcerias em um só lugar. 
               Automatize processos e foque no que importa: lucrar mais.
             </p>
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Button size="lg" className="bg-[#905BF4] px-8 text-white hover:bg-[#4E2BCC]" asChild>
                 <Link href="#planos">
-                  Ver Planos e Precos
+                  Ver Planos e Preços
                   <ChevronRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
@@ -505,7 +541,7 @@ export default function LandingPage() {
                 asChild
               >
                 <Link href="#modulos">
-                  Conhecer Modulos
+                  Conhecer Módulos
                 </Link>
               </Button>
             </div>
@@ -519,7 +555,7 @@ export default function LandingPage() {
           <div className="mx-auto max-w-3xl text-center">
             <Badge className="mb-4 border-[#4E2BCC]/30 bg-[#4E2BCC]/10 text-[#4E2BCC]">Um Problema</Badge>
             <h2 className="mb-6 text-3xl font-bold text-[#0F032D] md:text-4xl">
-              Voce se identifica com alguma dessas dificuldades?
+              Você se identifica com alguma dessas dificuldades?
             </h2>
           </div>
           <div className="mx-auto mt-12 grid max-w-5xl gap-6 md:grid-cols-3">
@@ -532,7 +568,7 @@ export default function LandingPage() {
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-base text-[#0F032D]/70">
-                  Dificuldade em fazer documentos como contratos, notas fiscais e faturas fazem voce deixar de alugar para bons clientes.
+                  Dificuldade em fazer documentos como contratos, notas fiscais e faturas fazem você deixar de alugar para bons clientes.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -541,11 +577,11 @@ export default function LandingPage() {
                 <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-[#4E2BCC]/10">
                   <BarChart3 className="h-6 w-6 text-[#4E2BCC]" />
                 </div>
-                <CardTitle className="text-[#0F032D]">Gestao no Papel</CardTitle>
+                <CardTitle className="text-[#0F032D]">Gestão no Papel</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-base text-[#0F032D]/70">
-                  O uso de papel e caneta nao permite saber de forma facil o quanto entrou no caixa e quanto foi deixado de faturar.
+                  O uso de papel e caneta não permite saber de forma fácil o quanto entrou no caixa e quanto foi deixado de faturar.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -558,7 +594,7 @@ export default function LandingPage() {
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-base text-[#0F032D]/70">
-                  A centralizacao de todos os papeis no proprietario causa sobrecarga constante e dificuldades para se planejar.
+                  A centralização de todos os papéis no proprietário causa sobrecarga constante e dificuldades para se planejar.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -570,12 +606,12 @@ export default function LandingPage() {
       <section id="solucao" className="bg-white py-20 lg:py-28">
         <div className="container mx-auto px-4">
           <div className="mx-auto max-w-3xl text-center">
-            <Badge className="mb-4 border-[#905BF4]/30 bg-[#905BF4]/10 text-[#905BF4]">A Solucao</Badge>
+            <Badge className="mb-4 border-[#905BF4]/30 bg-[#905BF4]/10 text-[#905BF4]">A Solução</Badge>
             <h2 className="mb-6 text-3xl font-bold text-[#0F032D] md:text-4xl">
-              LocLog: Tudo que voce precisa em um so lugar
+              LocLog: Tudo que você precisa em um só lugar
             </h2>
             <p className="text-lg text-[#0F032D]/70">
-              Nascido da experiencia real de mais de 10 anos no setor de locacao, o LocLog automatiza 
+              Nascido da experiência real de mais de 10 anos no setor de locação, o LocLog automatiza 
               processos e conecta locadores em uma comunidade voltada para o mesmo objetivo: lucrar mais.
             </p>
           </div>
@@ -597,12 +633,12 @@ export default function LandingPage() {
       <section id="modulos" className="bg-[#0F032D] py-20 text-[#EFEFEF] lg:py-28">
         <div className="container mx-auto px-4">
           <div className="mx-auto max-w-3xl text-center">
-            <Badge className="mb-4 border-[#905BF4]/30 bg-[#905BF4]/10 text-[#905BF4]">Modulos</Badge>
+            <Badge className="mb-4 border-[#905BF4]/30 bg-[#905BF4]/10 text-[#905BF4]">Módulos</Badge>
             <h2 className="mb-6 text-3xl font-bold md:text-4xl">
               Um ecossistema completo para sua locadora
             </h2>
             <p className="text-lg text-[#EFEFEF]/70">
-              Cada modulo foi projetado para resolver problemas especificos e se integrar perfeitamente com os demais.
+              Cada módulo foi projetado para resolver problemas específicos e se integrar perfeitamente com os demais.
             </p>
           </div>
           <div className="mx-auto mt-16 grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
@@ -637,10 +673,10 @@ export default function LandingPage() {
               Escolha o plano ideal para sua locadora
             </h2>
             <p className="mb-4 text-lg text-[#0F032D]/70">
-              Planos flexiveis que crescem junto com o seu negocio. Comece pequeno e escale conforme sua demanda.
+              Planos flexíveis que crescem junto com o seu negócio. Comece pequeno e escale conforme sua demanda.
             </p>
             <p className="text-sm text-[#905BF4] font-medium">
-              Pague anualmente e economize ate 20% no valor total
+              Pague anualmente e economize até 20% no valor total
             </p>
           </div>
 
@@ -673,10 +709,10 @@ export default function LandingPage() {
                       <>
                         <div className="flex items-baseline gap-1">
                           <span className="text-3xl font-bold text-[#0F032D]">{plan.price}</span>
-                          <span className="text-[#0F032D]/60">/mes</span>
+                          <span className="text-[#0F032D]/60">/mês</span>
                         </div>
                         <div className="mt-1 text-sm text-[#905BF4]">
-                          ou {plan.yearlyPrice}/mes no plano anual
+                          ou {plan.yearlyPrice}/mês no plano anual
                           {plan.discount && (
                             <span className="ml-1 font-semibold">({plan.discount} off)</span>
                           )}
@@ -699,7 +735,7 @@ export default function LandingPage() {
                   <div className="pt-2">
                     {plan.available ? (
                       <Button className="w-full bg-[#905BF4] text-white hover:bg-[#4E2BCC]">
-                        Comecar Agora
+                        Começar Agora
                       </Button>
                     ) : (
                       <div className="text-center">
@@ -723,116 +759,172 @@ export default function LandingPage() {
                   <ChevronRight className="ml-2 h-5 w-5" />
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-h-[90vh] max-w-6xl overflow-y-auto">
+              <DialogContent className="max-h-[90vh] max-w-7xl overflow-y-auto bg-white">
                 <DialogHeader>
-                  <DialogTitle className="text-2xl text-[#0F032D]">Comparacao Completa de Planos</DialogTitle>
+                  <DialogTitle className="text-2xl text-[#0F032D]">Comparação Completa de Planos</DialogTitle>
                 </DialogHeader>
-                <div className="mt-6">
-                  {/* Pricing Header */}
-                  <div className="mb-6 grid grid-cols-5 gap-4 border-b border-[#EFEFEF] pb-4">
-                    <div className="font-semibold text-[#0F032D]">Funcionalidade</div>
-                    <div className="text-center">
-                      <div className="font-semibold text-[#0F032D]">Starter</div>
-                      <div className="text-sm text-[#905BF4]">R$ 249/mes</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-semibold text-[#0F032D]">Pro</div>
-                      <div className="text-sm text-[#905BF4]">R$ 449/mes</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-semibold text-[#0F032D]">Enterprise</div>
-                      <div className="text-sm text-[#905BF4]">R$ 749/mes</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-semibold text-[#0F032D]">Develop</div>
-                      <div className="text-sm text-[#905BF4]">Sob consulta</div>
-                    </div>
-                  </div>
+                
+                <Tabs defaultValue="funcionalidades" className="mt-6">
+                  <TabsList className="mb-6 grid w-full grid-cols-3">
+                    <TabsTrigger value="funcionalidades">Funcionalidades</TabsTrigger>
+                    <TabsTrigger value="adicionais">Adicionais Avulsos</TabsTrigger>
+                    <TabsTrigger value="pacotes">Pacotes</TabsTrigger>
+                  </TabsList>
 
-                  {/* Categories */}
-                  {comparisonData.categories.map((category, catIndex) => (
-                    <div key={catIndex} className="mb-6">
-                      <div className="mb-3 rounded-lg bg-[#0F032D] px-4 py-2">
-                        <h3 className="font-semibold text-white">{category.name}</h3>
+                  <TabsContent value="funcionalidades" className="space-y-4">
+                    {/* Header fixo com planos */}
+                    <div className="sticky top-0 z-10 rounded-lg bg-[#0F032D] p-4">
+                      <div className="grid grid-cols-5 gap-2 text-center text-white">
+                        <div className="text-left font-medium">Funcionalidade</div>
+                        <div>
+                          <div className="font-semibold">Starter</div>
+                          <div className="text-xs text-[#905BF4]">R$ 249/mês</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold">Pro</div>
+                          <div className="text-xs text-[#905BF4]">R$ 449/mês</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold">Enterprise</div>
+                          <div className="text-xs text-[#905BF4]">R$ 749/mês</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold">Develop</div>
+                          <div className="text-xs text-[#905BF4]">Sob consulta</div>
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        {category.features.map((feature, featIndex) => (
-                          <div
-                            key={featIndex}
-                            className="grid grid-cols-5 gap-4 rounded-lg px-4 py-2 hover:bg-[#EFEFEF]"
-                          >
-                            <div className="text-sm text-[#0F032D]">{feature.name}</div>
-                            <div className="text-center">
-                              <FeatureValue value={feature.starter} />
+                    </div>
+
+                    {/* Categorias */}
+                    {comparisonData.categories.map((category, catIndex) => (
+                      <div key={catIndex} className="overflow-hidden rounded-lg border border-[#EFEFEF]">
+                        <div className="bg-[#905BF4]/10 px-4 py-2">
+                          <h3 className="font-semibold text-[#0F032D]">{category.name}</h3>
+                        </div>
+                        <div className="divide-y divide-[#EFEFEF]">
+                          {category.features.map((feature, featIndex) => (
+                            <div
+                              key={featIndex}
+                              className="grid grid-cols-5 gap-2 px-4 py-3 text-center hover:bg-[#EFEFEF]/50"
+                            >
+                              <div className="text-left text-sm text-[#0F032D]">{feature.name}</div>
+                              <div className="flex justify-center">
+                                <FeatureValue value={feature.starter} />
+                              </div>
+                              <div className="flex justify-center">
+                                <FeatureValue value={feature.pro} />
+                              </div>
+                              <div className="flex justify-center">
+                                <FeatureValue value={feature.enterprise} />
+                              </div>
+                              <div className="flex justify-center">
+                                <FeatureValue value={feature.develop} />
+                              </div>
                             </div>
-                            <div className="text-center">
-                              <FeatureValue value={feature.pro} />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </TabsContent>
+
+                  <TabsContent value="adicionais" className="space-y-6">
+                    {/* Mensais */}
+                    <div className="overflow-hidden rounded-lg border border-[#EFEFEF]">
+                      <div className="bg-[#905BF4] px-4 py-3">
+                        <h3 className="font-semibold text-white">Valor Mensal</h3>
+                      </div>
+                      <div className="divide-y divide-[#EFEFEF]">
+                        {comparisonData.addons.mensal.map((addon, index) => (
+                          <div key={index} className="grid grid-cols-3 gap-4 px-4 py-3 hover:bg-[#EFEFEF]/50">
+                            <div>
+                              <div className="text-sm font-medium text-[#0F032D]">{addon.name}</div>
+                              {addon.note && <div className="text-xs text-[#0F032D]/50">{addon.note}</div>}
                             </div>
+                            <div className="text-center text-sm font-semibold text-[#0F032D]">{addon.value}</div>
                             <div className="text-center">
-                              <FeatureValue value={feature.enterprise} />
-                            </div>
-                            <div className="text-center">
-                              <FeatureValue value={feature.develop} />
+                              {addon.available ? (
+                                <Badge className="bg-green-100 text-green-700">Disponível no lançamento</Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-[#0F032D]/60">Em breve</Badge>
+                              )}
                             </div>
                           </div>
                         ))}
                       </div>
                     </div>
-                  ))}
 
-                  {/* Addons */}
-                  <div className="mb-6">
-                    <div className="mb-3 rounded-lg bg-[#905BF4] px-4 py-2">
-                      <h3 className="font-semibold text-white">Adicionais Avulsos</h3>
-                    </div>
-                    <div className="space-y-2">
-                      {comparisonData.addons.map((addon, index) => (
-                        <div
-                          key={index}
-                          className="grid grid-cols-3 gap-4 rounded-lg px-4 py-2 hover:bg-[#EFEFEF]"
-                        >
-                          <div className="text-sm text-[#0F032D]">{addon.name}</div>
-                          <div className="text-center text-sm text-[#0F032D]">{addon.monthly}</div>
-                          <div className="text-center">
-                            {addon.available ? (
-                              <Badge className="bg-green-100 text-green-700">Disponivel no lancamento</Badge>
-                            ) : (
-                              <Badge variant="outline" className="text-[#0F032D]/60">Em breve</Badge>
-                            )}
+                    {/* Taxas */}
+                    <div className="overflow-hidden rounded-lg border border-[#EFEFEF]">
+                      <div className="bg-[#4E2BCC] px-4 py-3">
+                        <h3 className="font-semibold text-white">Taxa Transacional</h3>
+                      </div>
+                      <div className="divide-y divide-[#EFEFEF]">
+                        {comparisonData.addons.taxa.map((addon, index) => (
+                          <div key={index} className="grid grid-cols-3 gap-4 px-4 py-3 hover:bg-[#EFEFEF]/50">
+                            <div className="text-sm font-medium text-[#0F032D]">{addon.name}</div>
+                            <div className="text-center text-sm font-semibold text-[#0F032D]">{addon.value}</div>
+                            <div className="text-center">
+                              {addon.available ? (
+                                <Badge className="bg-green-100 text-green-700">Disponível no lançamento</Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-[#0F032D]/60">Em breve</Badge>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Packages */}
-                  <div className="mb-6">
-                    <div className="mb-3 rounded-lg bg-[#4E2BCC] px-4 py-2">
-                      <h3 className="font-semibold text-white">Pacotes com Desconto</h3>
+                    {/* Setup */}
+                    <div className="overflow-hidden rounded-lg border border-[#EFEFEF]">
+                      <div className="bg-[#0F032D] px-4 py-3">
+                        <h3 className="font-semibold text-white">Valor de Implantação (Setup)</h3>
+                      </div>
+                      <div className="divide-y divide-[#EFEFEF]">
+                        {comparisonData.addons.setup.map((addon, index) => (
+                          <div key={index} className="grid grid-cols-3 gap-4 px-4 py-3 hover:bg-[#EFEFEF]/50">
+                            <div className="text-sm font-medium text-[#0F032D]">{addon.name}</div>
+                            <div className="text-center text-sm font-semibold text-[#0F032D]">{addon.value}</div>
+                            <div className="text-center">
+                              {addon.available ? (
+                                <Badge className="bg-green-100 text-green-700">Disponível no lançamento</Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-[#0F032D]/60">Em breve</Badge>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="space-y-2">
+                  </TabsContent>
+
+                  <TabsContent value="pacotes" className="space-y-4">
+                    <p className="text-sm text-[#0F032D]/70">
+                      Combine funcionalidades e economize com nossos pacotes especiais.
+                    </p>
+                    <div className="grid gap-4 md:grid-cols-2">
                       {comparisonData.packages.map((pkg, index) => (
-                        <div
-                          key={index}
-                          className="grid grid-cols-3 gap-4 rounded-lg px-4 py-2 hover:bg-[#EFEFEF]"
-                        >
-                          <div>
-                            <div className="text-sm font-medium text-[#0F032D]">{pkg.name}</div>
-                            <div className="text-xs text-[#0F032D]/60">{pkg.description}</div>
-                          </div>
-                          <div className="text-center text-sm text-[#0F032D]">{pkg.monthly}</div>
-                          <div className="text-center">
-                            {pkg.available ? (
-                              <Badge className="bg-green-100 text-green-700">Disponivel no lancamento</Badge>
-                            ) : (
-                              <Badge variant="outline" className="text-[#0F032D]/60">Em breve</Badge>
-                            )}
-                          </div>
-                        </div>
+                        <Card key={index} className={`border-2 ${pkg.available ? 'border-[#905BF4]' : 'border-[#EFEFEF]'}`}>
+                          <CardHeader>
+                            <div className="flex items-start justify-between">
+                              <CardTitle className="text-lg text-[#0F032D]">{pkg.name}</CardTitle>
+                              {pkg.available ? (
+                                <Badge className="bg-green-100 text-green-700">Disponível</Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-[#0F032D]/60">Em breve</Badge>
+                              )}
+                            </div>
+                            <CardDescription className="text-[#0F032D]/70">{pkg.description}</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-2xl font-bold text-[#905BF4]">{pkg.value}</div>
+                            <p className="mt-2 text-sm text-green-600">{pkg.savings}</p>
+                          </CardContent>
+                        </Card>
                       ))}
                     </div>
-                  </div>
-                </div>
+                  </TabsContent>
+                </Tabs>
               </DialogContent>
             </Dialog>
           </div>
@@ -846,10 +938,10 @@ export default function LandingPage() {
             <div>
               <Badge className="mb-4 border-[#4E2BCC]/30 bg-[#4E2BCC]/10 text-[#4E2BCC]">Por que escolher</Badge>
               <h2 className="mb-6 text-3xl font-bold text-[#0F032D] md:text-4xl">
-                Beneficios que fazem a diferenca
+                Benefícios que fazem a diferença
               </h2>
               <p className="mb-8 text-lg text-[#0F032D]/70">
-                O LocLog foi desenvolvido por quem entende do negocio. Cada funcionalidade foi pensada 
+                O LocLog foi desenvolvido por quem entende do negócio. Cada funcionalidade foi pensada 
                 para resolver problemas reais do dia a dia de um locador.
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -870,7 +962,7 @@ export default function LandingPage() {
                     </div>
                     <h3 className="mb-2 text-2xl font-bold text-[#EFEFEF]">Programa de Parcerias</h3>
                     <p className="text-[#EFEFEF]/70">
-                      Foque em alugar. O valor e recebido automaticamente assim que faz a entrega.
+                      Foque em alugar. O valor é recebido automaticamente assim que faz a entrega.
                     </p>
                   </div>
                 </div>
@@ -892,17 +984,17 @@ export default function LandingPage() {
               Pronto para revolucionar sua locadora?
             </h2>
             <p className="mb-10 text-lg text-white/90">
-              Escolha o plano ideal para o seu negocio e comece a automatizar seus processos hoje mesmo. 
-              Lancamento previsto para o primeiro semestre de 2026.
+              Escolha o plano ideal para o seu negócio e comece a automatizar seus processos hoje mesmo. 
+              Lançamento previsto para o primeiro semestre de 2026.
             </p>
             <Button size="lg" className="bg-white px-8 text-[#4E2BCC] hover:bg-[#EFEFEF]" asChild>
               <Link href="#planos">
-                Ver Planos e Precos
+                Ver Planos e Preços
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
             <p className="mt-6 text-sm text-white/70">
-              Planos a partir de R$ 199/mes no pagamento anual
+              Planos a partir de R$ 199/mês no pagamento anual
             </p>
           </div>
         </div>
@@ -913,37 +1005,45 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="mx-auto max-w-3xl text-center">
             <Badge className="mb-4 border-[#905BF4]/30 bg-[#905BF4]/10 text-[#905BF4]">Contato</Badge>
-            <h2 className="mb-6 text-3xl font-bold text-[#0F032D] md:text-4xl">Fale Conosco</h2>
+            <h2 className="mb-6 text-3xl font-bold text-[#0F032D] md:text-4xl">
+              Fale Conosco
+            </h2>
             <p className="mb-12 text-lg text-[#0F032D]/70">
-              Tem duvidas ou quer saber mais sobre o LocLog? Entre em contato.
+              Tem dúvidas? Entre em contato com nossa equipe e descubra como o LocLog pode ajudar sua locadora.
             </p>
           </div>
           <div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-3">
-            <Card className="border-none bg-[#EFEFEF] text-center shadow-lg">
-              <CardContent className="pt-8">
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-[#905BF4]/10">
-                  <Phone className="h-7 w-7 text-[#905BF4]" />
+            <Card className="border-none bg-[#EFEFEF] text-center">
+              <CardHeader>
+                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-[#905BF4]/10">
+                  <Phone className="h-6 w-6 text-[#905BF4]" />
                 </div>
-                <h3 className="mb-2 font-semibold text-[#0F032D]">Telefone</h3>
-                <p className="text-[#0F032D]/70">(15) 99999-9999</p>
+                <CardTitle className="text-lg text-[#0F032D]">WhatsApp</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-[#0F032D]/70">(11) 99999-9999</p>
               </CardContent>
             </Card>
-            <Card className="border-none bg-[#EFEFEF] text-center shadow-lg">
-              <CardContent className="pt-8">
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-[#4E2BCC]/10">
-                  <Mail className="h-7 w-7 text-[#4E2BCC]" />
+            <Card className="border-none bg-[#EFEFEF] text-center">
+              <CardHeader>
+                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-[#4E2BCC]/10">
+                  <Mail className="h-6 w-6 text-[#4E2BCC]" />
                 </div>
-                <h3 className="mb-2 font-semibold text-[#0F032D]">E-mail</h3>
-                <p className="text-[#0F032D]/70">contato@developz.com.br</p>
+                <CardTitle className="text-lg text-[#0F032D]">E-mail</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-[#0F032D]/70">contato@loclog.com.br</p>
               </CardContent>
             </Card>
-            <Card className="border-none bg-[#EFEFEF] text-center shadow-lg">
-              <CardContent className="pt-8">
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-[#0F032D]/10">
-                  <MapPin className="h-7 w-7 text-[#0F032D]" />
+            <Card className="border-none bg-[#EFEFEF] text-center">
+              <CardHeader>
+                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-[#0F032D]/10">
+                  <MapPin className="h-6 w-6 text-[#0F032D]" />
                 </div>
-                <h3 className="mb-2 font-semibold text-[#0F032D]">Localizacao</h3>
-                <p className="text-[#0F032D]/70">Sorocaba e Regiao</p>
+                <CardTitle className="text-lg text-[#0F032D]">Localização</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-[#0F032D]/70">São Paulo, SP - Brasil</p>
               </CardContent>
             </Card>
           </div>
@@ -953,30 +1053,67 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="bg-[#0F032D] py-12 text-[#EFEFEF]">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
-            <Link href="/" className="flex items-center gap-2">
+          <div className="grid gap-8 md:grid-cols-4">
+            <div className="md:col-span-2">
               <Image
                 src={LOGO_FOOTER}
                 alt="LocLog"
                 width={120}
                 height={40}
-                className="h-10 w-auto"
+                className="mb-4 h-10 w-auto"
               />
-            </Link>
-            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-[#EFEFEF]/70">
-              <Link href="https://www.developz.com.br" className="transition-colors hover:text-[#905BF4]">
-                Developz
-              </Link>
-              <Link href="#" className="transition-colors hover:text-[#905BF4]">
+              <p className="max-w-sm text-sm text-[#EFEFEF]/60">
+                O sistema completo para gestão de locadoras de bens móveis. 
+                Automatize processos, aumente a produtividade e lucre mais.
+              </p>
+            </div>
+            <div>
+              <h4 className="mb-4 font-semibold text-[#EFEFEF]">Links Rápidos</h4>
+              <nav className="flex flex-col gap-2">
+                <Link href="#problema" className="text-sm text-[#EFEFEF]/60 transition-colors hover:text-[#905BF4]">
+                  O Problema
+                </Link>
+                <Link href="#solucao" className="text-sm text-[#EFEFEF]/60 transition-colors hover:text-[#905BF4]">
+                  A Solução
+                </Link>
+                <Link href="#modulos" className="text-sm text-[#EFEFEF]/60 transition-colors hover:text-[#905BF4]">
+                  Módulos
+                </Link>
+                <Link href="#planos" className="text-sm text-[#EFEFEF]/60 transition-colors hover:text-[#905BF4]">
+                  Planos
+                </Link>
+              </nav>
+            </div>
+            <div>
+              <h4 className="mb-4 font-semibold text-[#EFEFEF]">Suporte</h4>
+              <nav className="flex flex-col gap-2">
+                <Link href="#" className="text-sm text-[#EFEFEF]/60 transition-colors hover:text-[#905BF4]">
+                  Documentação
+                </Link>
+                <Link href="#" className="text-sm text-[#EFEFEF]/60 transition-colors hover:text-[#905BF4]">
+                  Academia Developz
+                </Link>
+                <Link href="#contato" className="text-sm text-[#EFEFEF]/60 transition-colors hover:text-[#905BF4]">
+                  Contato
+                </Link>
+                <Link href="/dashboard" className="text-sm text-[#EFEFEF]/60 transition-colors hover:text-[#905BF4]">
+                  Acessar Sistema
+                </Link>
+              </nav>
+            </div>
+          </div>
+          <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-[#2A1A50] pt-8 md:flex-row">
+            <p className="text-sm text-[#EFEFEF]/40">
+              © {new Date().getFullYear()} LocLog by Developz. Todos os direitos reservados.
+            </p>
+            <div className="flex gap-6">
+              <Link href="#" className="text-sm text-[#EFEFEF]/40 transition-colors hover:text-[#905BF4]">
                 Termos de Uso
               </Link>
-              <Link href="#" className="transition-colors hover:text-[#905BF4]">
+              <Link href="#" className="text-sm text-[#EFEFEF]/40 transition-colors hover:text-[#905BF4]">
                 Privacidade
               </Link>
             </div>
-            <p className="text-sm text-[#EFEFEF]/50">
-              2026 Developz. Todos os direitos reservados.
-            </p>
           </div>
         </div>
       </footer>
