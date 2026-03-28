@@ -101,15 +101,15 @@ export default function DashboardLayout({
         }`}
       >
         {/* Logo */}
-        <div className="flex h-16 items-center justify-between px-4">
-          <Link href="/dashboard" className="flex items-center gap-2">
-<Image
-                src={LOGO_WHITE}
-                alt="LocLog"
-                width={100}
-                height={35}
-                style={{ width: "auto", height: "auto" }}
-              className="h-8 w-auto"
+        <div className="flex h-16 items-center justify-between px-6">
+          <Link href="/dashboard" className="flex items-center">
+            <Image
+              src={LOGO_WHITE}
+              alt="LocLog"
+              width={90}
+              height={28}
+              style={{ width: "auto", height: "auto" }}
+              className="h-7 w-auto"
             />
           </Link>
           <button

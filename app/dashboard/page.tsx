@@ -238,25 +238,25 @@ export default function DashboardPage() {
         {/* Atalhos e Resumo */}
         <div className="space-y-6">
           {/* Orçamento Recente */}
-          <Card className="border-none shadow-md">
+          <Card className="border-none shadow-md overflow-hidden">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg text-[#0F032D]">Último Orçamento</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-6">
               <div className="rounded-lg bg-[#EFEFEF] p-4">
-                <div className="flex items-start justify-between">
-                  <div>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
                     <Badge className="bg-[#905BF4]/10 text-[#905BF4]">#Q-198</Badge>
-                    <p className="mt-2 font-semibold text-[#0F032D]">João Silva (PF)</p>
+                    <p className="mt-2 font-semibold text-[#0F032D] truncate">João Silva (PF)</p>
                     <p className="text-sm text-[#0F032D]/60">Enviado por WhatsApp</p>
                   </div>
-                  <p className="text-lg font-bold text-[#0F032D]">R$ 350,00</p>
+                  <p className="text-lg font-bold text-[#0F032D] shrink-0">R$ 350,00</p>
                 </div>
-                <div className="mt-4 flex gap-2">
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                   <Button size="sm" className="flex-1 bg-[#905BF4] text-white hover:bg-[#4E2BCC]">
                     Converter em Pedido
                   </Button>
-                  <Button size="sm" variant="outline" className="border-[#D0D0D8]">
+                  <Button size="sm" variant="outline" className="border-[#D0D0D8] shrink-0">
                     Ver
                   </Button>
                 </div>

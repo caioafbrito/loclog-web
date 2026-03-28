@@ -397,10 +397,10 @@ export default function LandingPage() {
               <Image
                 src={LOGO_HEADER}
                 alt="LocLog"
-                width={120}
-                height={40}
+                width={100}
+                height={32}
                 style={{ width: "auto", height: "auto" }}
-                className="h-10 w-auto"
+                className="h-8 w-auto"
               />
             </Link>
 
@@ -423,14 +423,14 @@ export default function LandingPage() {
               </Link>
             </nav>
 
-            <div className="hidden items-center gap-3 md:flex">
-              <Button variant="outline" className="border-[#905BF4] text-[#905BF4] hover:bg-[#905BF4]/10" asChild>
+            <div className="hidden items-center gap-4 md:flex">
+              <Button variant="outline" size="sm" className="border-[#905BF4] text-[#905BF4] hover:bg-[#905BF4]/10" asChild>
                 <Link href="/dashboard">
                   <LayoutDashboard className="mr-2 h-4 w-4" />
                   Dashboard
                 </Link>
               </Button>
-              <Button className="bg-[#905BF4] text-white hover:bg-[#4E2BCC]" asChild>
+              <Button size="sm" className="bg-[#905BF4] text-white hover:bg-[#4E2BCC]" asChild>
                 <Link href="#planos">
                   Ver Planos
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -776,58 +776,62 @@ export default function LandingPage() {
 
                   <TabsContent value="funcionalidades" className="space-y-4">
                     {/* Header fixo com planos */}
-                    <div className="sticky top-0 z-10 rounded-lg bg-[#0F032D] p-4">
-                      <div className="grid grid-cols-5 gap-2 text-center text-white">
-                        <div className="text-left font-medium">Funcionalidade</div>
-                        <div>
-                          <div className="font-semibold">Starter</div>
-                          <div className="text-xs text-[#905BF4]">R$ 249/mês</div>
+                    <div className="overflow-x-auto">
+                      <div className="min-w-[700px]">
+                        <div className="rounded-lg bg-[#0F032D] p-4">
+                          <div className="grid grid-cols-[minmax(200px,2fr)_repeat(4,minmax(100px,1fr))] gap-4 text-center text-white">
+                            <div className="text-left font-medium">Funcionalidade</div>
+                            <div>
+                              <div className="font-semibold">Starter</div>
+                              <div className="text-xs text-[#905BF4]">R$ 249/mês</div>
+                            </div>
+                            <div>
+                              <div className="font-semibold">Pro</div>
+                              <div className="text-xs text-[#905BF4]">R$ 449/mês</div>
+                            </div>
+                            <div>
+                              <div className="font-semibold">Enterprise</div>
+                              <div className="text-xs text-[#905BF4]">R$ 749/mês</div>
+                            </div>
+                            <div>
+                              <div className="font-semibold">Develop</div>
+                              <div className="text-xs text-[#905BF4]">Sob consulta</div>
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="font-semibold">Pro</div>
-                          <div className="text-xs text-[#905BF4]">R$ 449/mês</div>
-                        </div>
-                        <div>
-                          <div className="font-semibold">Enterprise</div>
-                          <div className="text-xs text-[#905BF4]">R$ 749/mês</div>
-                        </div>
-                        <div>
-                          <div className="font-semibold">Develop</div>
-                          <div className="text-xs text-[#905BF4]">Sob consulta</div>
-                        </div>
+
+                        {/* Categorias */}
+                        {comparisonData.categories.map((category, catIndex) => (
+                          <div key={catIndex} className="mt-4 overflow-hidden rounded-lg border border-[#EFEFEF]">
+                            <div className="bg-[#905BF4]/10 px-4 py-3">
+                              <h3 className="font-semibold text-[#0F032D]">{category.name}</h3>
+                            </div>
+                            <div className="divide-y divide-[#EFEFEF]">
+                              {category.features.map((feature, featIndex) => (
+                                <div
+                                  key={featIndex}
+                                  className="grid grid-cols-[minmax(200px,2fr)_repeat(4,minmax(100px,1fr))] gap-4 px-4 py-3 text-center hover:bg-[#EFEFEF]/50"
+                                >
+                                  <div className="text-left text-sm text-[#0F032D]">{feature.name}</div>
+                                  <div className="flex items-center justify-center">
+                                    <FeatureValue value={feature.starter} />
+                                  </div>
+                                  <div className="flex items-center justify-center">
+                                    <FeatureValue value={feature.pro} />
+                                  </div>
+                                  <div className="flex items-center justify-center">
+                                    <FeatureValue value={feature.enterprise} />
+                                  </div>
+                                  <div className="flex items-center justify-center">
+                                    <FeatureValue value={feature.develop} />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-
-                    {/* Categorias */}
-                    {comparisonData.categories.map((category, catIndex) => (
-                      <div key={catIndex} className="overflow-hidden rounded-lg border border-[#EFEFEF]">
-                        <div className="bg-[#905BF4]/10 px-4 py-2">
-                          <h3 className="font-semibold text-[#0F032D]">{category.name}</h3>
-                        </div>
-                        <div className="divide-y divide-[#EFEFEF]">
-                          {category.features.map((feature, featIndex) => (
-                            <div
-                              key={featIndex}
-                              className="grid grid-cols-5 gap-2 px-4 py-3 text-center hover:bg-[#EFEFEF]/50"
-                            >
-                              <div className="text-left text-sm text-[#0F032D]">{feature.name}</div>
-                              <div className="flex justify-center">
-                                <FeatureValue value={feature.starter} />
-                              </div>
-                              <div className="flex justify-center">
-                                <FeatureValue value={feature.pro} />
-                              </div>
-                              <div className="flex justify-center">
-                                <FeatureValue value={feature.enterprise} />
-                              </div>
-                              <div className="flex justify-center">
-                                <FeatureValue value={feature.develop} />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
                   </TabsContent>
 
                   <TabsContent value="adicionais" className="space-y-6">

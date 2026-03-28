@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -21,6 +22,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Textarea } from "@/components/ui/textarea"
+import {
   Plus,
   Search,
   Filter,
@@ -38,10 +58,11 @@ import {
   FileDown,
   Send,
   Copy,
+  Trash2,
 } from "lucide-react"
 
 // Dados mock
-const quotations = [
+const initialQuotations = [
   {
     id: "#Q-198",
     client: "João Silva",
@@ -51,6 +72,7 @@ const quotations = [
       { name: "Cadeiras", qty: 10, price: 35 },
     ],
     total: "R$ 350,00",
+    totalValue: 350,
     status: "sent",
     sentVia: "whatsapp",
     createdAt: "03/12/2026",
@@ -68,6 +90,7 @@ const quotations = [
       { name: "Toalhas", qty: 16, price: 15 },
     ],
     total: "R$ 4.400,00",
+    totalValue: 4400,
     status: "accepted",
     sentVia: "pdf",
     createdAt: "02/12/2026",
@@ -84,6 +107,7 @@ const quotations = [
       { name: "Mesas", qty: 6, price: 85 },
     ],
     total: "R$ 1.560,00",
+    totalValue: 1560,
     status: "draft",
     sentVia: null,
     createdAt: "01/12/2026",
@@ -100,6 +124,7 @@ const quotations = [
       { name: "Mesas", qty: 30, price: 85 },
     ],
     total: "R$ 7.800,00",
+    totalValue: 7800,
     status: "rejected",
     sentVia: "pdf",
     createdAt: "28/11/2026",
@@ -116,6 +141,7 @@ const quotations = [
       { name: "Mesas", qty: 5, price: 85 },
     ],
     total: "R$ 1.300,00",
+    totalValue: 1300,
     status: "expired",
     sentVia: "whatsapp",
     createdAt: "20/11/2026",
@@ -138,8 +164,16 @@ const sentViaConfig = {
 }
 
 export default function OrcamentosPage() {
+  const router = useRouter()
+  const [quotations, setQuotations] = useState(initialQuotations)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
+  
+  // Dialog states
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; quoteId: string | null }>({ open: false, quoteId: null })
+  const [viewDialog, setViewDialog] = useState<{ open: boolean; quote: typeof initialQuotations[0] | null }>({ open: false, quote: null })
+  const [whatsappDialog, setWhatsappDialog] = useState<{ open: boolean; quote: typeof initialQuotations[0] | null }>({ open: false, quote: null })
+  const [convertDialog, setConvertDialog] = useState<{ open: boolean; quote: typeof initialQuotations[0] | null }>({ open: false, quote: null })
 
   const filteredQuotations = quotations.filter(q => {
     const matchesSearch = q.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -155,6 +189,56 @@ export default function OrcamentosPage() {
     accepted: quotations.filter(q => q.status === "accepted"),
     rejected: quotations.filter(q => q.status === "rejected"),
     expired: quotations.filter(q => q.status === "expired"),
+  }
+
+  // Handlers
+  const handleDelete = () => {
+    if (deleteDialog.quoteId) {
+      setQuotations(quotations.filter(q => q.id !== deleteDialog.quoteId))
+      setDeleteDialog({ open: false, quoteId: null })
+    }
+  }
+
+  const handleDuplicate = (quote: typeof initialQuotations[0]) => {
+    const newId = `#Q-${199 + quotations.length}`
+    const duplicated = {
+      ...quote,
+      id: newId,
+      status: "draft" as const,
+      sentVia: null,
+      createdAt: new Date().toLocaleDateString('pt-BR'),
+    }
+    setQuotations([duplicated, ...quotations])
+  }
+
+  const handleSend = (quote: typeof initialQuotations[0], via: "whatsapp" | "pdf") => {
+    setQuotations(quotations.map(q => 
+      q.id === quote.id 
+        ? { ...q, status: "sent" as const, sentVia: via }
+        : q
+    ))
+    if (via === "pdf") {
+      alert("PDF gerado e enviado com sucesso!")
+    }
+  }
+
+  const generateWhatsAppText = (quote: typeof initialQuotations[0]) => {
+    const itemsText = quote.items.map(item => `- ${item.qty}x ${item.name}: R$ ${(item.qty * item.price).toFixed(2)}`).join('\n')
+    return `*Orçamento ${quote.id}*\n\nOlá ${quote.client}!\n\nSegue seu orçamento:\n\n${itemsText}\n\n*Total: ${quote.total}*\n\nData do evento: ${quote.eventDate}\nValidade: ${quote.validUntil}\n\nAguardamos seu retorno!`
+  }
+
+  const handleConvertToOrder = () => {
+    if (convertDialog.quote) {
+      // Simular conversão
+      alert(`Orçamento ${convertDialog.quote.id} convertido em pedido com sucesso!`)
+      setQuotations(quotations.map(q => 
+        q.id === convertDialog.quote?.id 
+          ? { ...q, status: "accepted" as const }
+          : q
+      ))
+      setConvertDialog({ open: false, quote: null })
+      router.push("/dashboard/pedidos")
+    }
   }
 
   return (
@@ -259,19 +343,19 @@ export default function OrcamentosPage() {
 
                     <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                       <div className="flex items-center gap-2 text-sm text-[#0F032D]/70">
-                        <Phone className="h-4 w-4" />
+                        <Phone className="h-4 w-4 shrink-0" />
                         {quotation.phone}
                       </div>
                       <div className="flex items-center gap-2 text-sm text-[#0F032D]/70">
-                        <Calendar className="h-4 w-4" />
+                        <Calendar className="h-4 w-4 shrink-0" />
                         Criado: {quotation.createdAt}
                       </div>
                       <div className="flex items-center gap-2 text-sm text-[#0F032D]/70">
-                        <Clock className="h-4 w-4" />
+                        <Clock className="h-4 w-4 shrink-0" />
                         Valido até: {quotation.validUntil}
                       </div>
                       <div className="flex items-center gap-2 text-sm text-[#0F032D]/70">
-                        <Calendar className="h-4 w-4" />
+                        <Calendar className="h-4 w-4 shrink-0" />
                         Evento: {quotation.eventDate}
                       </div>
                     </div>
@@ -291,13 +375,21 @@ export default function OrcamentosPage() {
                   {/* Actions */}
                   <div className="flex items-center justify-end gap-2 border-t border-[#EFEFEF] bg-[#EFEFEF]/50 p-4 lg:w-56 lg:flex-col lg:justify-center lg:border-l lg:border-t-0">
                     {quotation.status === "accepted" && (
-                      <Button size="sm" className="flex-1 bg-[#905BF4] text-white hover:bg-[#4E2BCC] lg:w-full">
+                      <Button 
+                        size="sm" 
+                        className="flex-1 bg-[#905BF4] text-white hover:bg-[#4E2BCC] lg:w-full"
+                        onClick={() => setConvertDialog({ open: true, quote: quotation })}
+                      >
                         <Package className="mr-2 h-4 w-4" />
                         Converter em Pedido
                       </Button>
                     )}
                     {quotation.status === "draft" && (
-                      <Button size="sm" className="flex-1 bg-[#905BF4] text-white hover:bg-[#4E2BCC] lg:w-full">
+                      <Button 
+                        size="sm" 
+                        className="flex-1 bg-[#905BF4] text-white hover:bg-[#4E2BCC] lg:w-full"
+                        onClick={() => setWhatsappDialog({ open: true, quote: quotation })}
+                      >
                         <Send className="mr-2 h-4 w-4" />
                         Enviar
                       </Button>
@@ -310,30 +402,37 @@ export default function OrcamentosPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setViewDialog({ open: true, quote: quotation })}>
                           <Eye className="mr-2 h-4 w-4" />
                           Visualizar
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Editar
+                        <DropdownMenuItem asChild>
+                          <Link href={`/dashboard/orcamentos/novo?edit=${quotation.id}`}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Editar
+                          </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDuplicate(quotation)}>
                           <Copy className="mr-2 h-4 w-4" />
                           Duplicar
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          handleSend(quotation, "pdf")
+                        }}>
                           <FileDown className="mr-2 h-4 w-4" />
                           Baixar PDF
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setWhatsappDialog({ open: true, quote: quotation })}>
                           <MessageCircle className="mr-2 h-4 w-4" />
                           Gerar Texto (WhatsApp)
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-red-600">
-                          <XCircle className="mr-2 h-4 w-4" />
+                        <DropdownMenuItem 
+                          className="text-red-600"
+                          onClick={() => setDeleteDialog({ open: true, quoteId: quotation.id })}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
                           Excluir
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -345,6 +444,165 @@ export default function OrcamentosPage() {
           )
         })}
       </div>
+
+      {/* Delete Dialog */}
+      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, quoteId: open ? deleteDialog.quoteId : null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Orçamento</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o orçamento {deleteDialog.quoteId}? 
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-red-600 hover:bg-red-700"
+              onClick={handleDelete}
+            >
+              Sim, excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* View Dialog */}
+      <Dialog open={viewDialog.open} onOpenChange={(open) => setViewDialog({ open, quote: open ? viewDialog.quote : null })}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Orçamento {viewDialog.quote?.id}</DialogTitle>
+          </DialogHeader>
+          {viewDialog.quote && (
+            <div className="space-y-6">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <p className="text-sm text-[#0F032D]/60">Cliente</p>
+                  <p className="font-medium">{viewDialog.quote.client}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-[#0F032D]/60">Telefone</p>
+                  <p className="font-medium">{viewDialog.quote.phone}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-[#0F032D]/60">Data do Evento</p>
+                  <p className="font-medium">{viewDialog.quote.eventDate}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-[#0F032D]/60">Validade</p>
+                  <p className="font-medium">{viewDialog.quote.validUntil}</p>
+                </div>
+              </div>
+              
+              <div>
+                <p className="mb-2 text-sm text-[#0F032D]/60">Itens do Orçamento</p>
+                <div className="rounded-lg border border-[#EFEFEF]">
+                  {viewDialog.quote.items.map((item, i) => (
+                    <div key={i} className="flex justify-between border-b border-[#EFEFEF] p-3 last:border-0">
+                      <span>{item.qty}x {item.name}</span>
+                      <span className="font-medium">R$ {(item.qty * item.price).toFixed(2)}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between bg-[#EFEFEF] p-3 font-bold">
+                    <span>Total</span>
+                    <span>{viewDialog.quote.total}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewDialog({ open: false, quote: null })}>
+              Fechar
+            </Button>
+            {viewDialog.quote?.status === "accepted" && (
+              <Button 
+                className="bg-[#905BF4] hover:bg-[#4E2BCC]"
+                onClick={() => {
+                  setViewDialog({ open: false, quote: null })
+                  setConvertDialog({ open: true, quote: viewDialog.quote })
+                }}
+              >
+                <Package className="mr-2 h-4 w-4" />
+                Converter em Pedido
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* WhatsApp Dialog */}
+      <Dialog open={whatsappDialog.open} onOpenChange={(open) => setWhatsappDialog({ open, quote: open ? whatsappDialog.quote : null })}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Texto para WhatsApp</DialogTitle>
+            <DialogDescription>Copie o texto abaixo e envie para o cliente</DialogDescription>
+          </DialogHeader>
+          {whatsappDialog.quote && (
+            <div className="space-y-4">
+              <Textarea
+                value={generateWhatsAppText(whatsappDialog.quote)}
+                readOnly
+                rows={12}
+                className="font-mono text-sm"
+              />
+              <div className="flex gap-2">
+                <Button 
+                  className="flex-1"
+                  onClick={() => {
+                    navigator.clipboard.writeText(generateWhatsAppText(whatsappDialog.quote!))
+                    alert("Texto copiado para a área de transferência!")
+                  }}
+                >
+                  <Copy className="mr-2 h-4 w-4" />
+                  Copiar Texto
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    const text = encodeURIComponent(generateWhatsAppText(whatsappDialog.quote!))
+                    const phone = whatsappDialog.quote!.phone.replace(/\D/g, '')
+                    window.open(`https://wa.me/55${phone}?text=${text}`, '_blank')
+                    handleSend(whatsappDialog.quote!, "whatsapp")
+                    setWhatsappDialog({ open: false, quote: null })
+                  }}
+                >
+                  <MessageCircle className="mr-2 h-4 w-4" />
+                  Abrir WhatsApp
+                </Button>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWhatsappDialog({ open: false, quote: null })}>
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Convert Dialog */}
+      <AlertDialog open={convertDialog.open} onOpenChange={(open) => setConvertDialog({ open, quote: open ? convertDialog.quote : null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Converter em Pedido</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja converter o orçamento {convertDialog.quote?.id} em um pedido? 
+              Você será redirecionado para completar os dados do pedido.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-[#905BF4] hover:bg-[#4E2BCC]"
+              onClick={handleConvertToOrder}
+            >
+              Sim, converter em pedido
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

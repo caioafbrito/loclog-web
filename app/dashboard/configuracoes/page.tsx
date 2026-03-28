@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
 import { 
   Building2, 
   User, 
@@ -29,7 +30,10 @@ import {
   Phone,
   MapPin,
   Save,
-  Upload
+  Upload,
+  Clock,
+  Plus,
+  Trash2,
 } from "lucide-react"
 
 export default function ConfiguracoesPage() {
@@ -78,6 +82,10 @@ export default function ConfiguracoesPage() {
           <TabsTrigger value="documents" className="gap-2">
             <FileText className="h-4 w-4" />
             Documentos
+          </TabsTrigger>
+          <TabsTrigger value="hours" className="gap-2">
+            <Clock className="h-4 w-4" />
+            Horários
           </TabsTrigger>
           <TabsTrigger value="appearance" className="gap-2">
             <Palette className="h-4 w-4" />
@@ -481,6 +489,224 @@ export default function ConfiguracoesPage() {
                   Editar
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="hours" className="space-y-6">
+          {/* Horário Comercial Principal */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Horário Comercial
+              </CardTitle>
+              <CardDescription>
+                Define o horário padrão de funcionamento para entregas e retiradas
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"].map((day, index) => (
+                <div key={day} className="flex flex-wrap items-center gap-4 rounded-lg border p-4">
+                  <div className="w-24 font-medium text-[#0F032D]">{day}</div>
+                  <div className="flex flex-1 flex-wrap items-center gap-2">
+                    <Switch defaultChecked={index < 5} />
+                    {index < 5 ? (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <Label className="text-sm text-muted-foreground">Manhã:</Label>
+                          <Input type="time" defaultValue="08:00" className="w-28" />
+                          <span className="text-muted-foreground">às</span>
+                          <Input type="time" defaultValue="12:00" className="w-28" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Label className="text-sm text-muted-foreground">Tarde:</Label>
+                          <Input type="time" defaultValue="13:00" className="w-28" />
+                          <span className="text-muted-foreground">às</span>
+                          <Input type="time" defaultValue="17:00" className="w-28" />
+                        </div>
+                      </>
+                    ) : index === 5 ? (
+                      <div className="flex items-center gap-2">
+                        <Input type="time" defaultValue="08:00" className="w-28" />
+                        <span className="text-muted-foreground">às</span>
+                        <Input type="time" defaultValue="12:00" className="w-28" />
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">Fechado</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Períodos Personalizados */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Períodos Personalizados</CardTitle>
+                  <CardDescription>
+                    Crie períodos de entrega específicos (ex: Manhã, Tarde, Noite)
+                  </CardDescription>
+                </div>
+                <Button size="sm" className="bg-[#905BF4] hover:bg-[#4E2BCC]">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Novo Período
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Período Manhã */}
+              <div className="rounded-lg border p-4">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-[#905BF4]/10 text-[#905BF4]">Manhã</Badge>
+                      <span className="text-sm text-muted-foreground">Prioridade: Alta</span>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm">Horário:</Label>
+                        <Input type="time" defaultValue="08:00" className="w-28" />
+                        <span className="text-muted-foreground">às</span>
+                        <Input type="time" defaultValue="12:00" className="w-28" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm">Dias:</Label>
+                        <Select defaultValue="seg-sex">
+                          <SelectTrigger className="w-40">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="seg-sex">Seg - Sex</SelectItem>
+                            <SelectItem value="seg-sab">Seg - Sáb</SelectItem>
+                            <SelectItem value="todos">Todos os dias</SelectItem>
+                            <SelectItem value="personalizado">Personalizado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" className="text-red-600 hover:bg-red-50 hover:text-red-700">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Período Tarde */}
+              <div className="rounded-lg border p-4">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-[#4E2BCC]/10 text-[#4E2BCC]">Tarde</Badge>
+                      <span className="text-sm text-muted-foreground">Prioridade: Alta</span>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm">Horário:</Label>
+                        <Input type="time" defaultValue="13:00" className="w-28" />
+                        <span className="text-muted-foreground">às</span>
+                        <Input type="time" defaultValue="18:00" className="w-28" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm">Dias:</Label>
+                        <Select defaultValue="seg-sex">
+                          <SelectTrigger className="w-40">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="seg-sex">Seg - Sex</SelectItem>
+                            <SelectItem value="seg-sab">Seg - Sáb</SelectItem>
+                            <SelectItem value="todos">Todos os dias</SelectItem>
+                            <SelectItem value="personalizado">Personalizado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" className="text-red-600 hover:bg-red-50 hover:text-red-700">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Período Noite */}
+              <div className="rounded-lg border p-4">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-[#0F032D]/10 text-[#0F032D]">Noite</Badge>
+                      <span className="text-sm text-muted-foreground">Prioridade: Média</span>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm">Horário:</Label>
+                        <Input type="time" defaultValue="18:00" className="w-28" />
+                        <span className="text-muted-foreground">às</span>
+                        <Input type="time" defaultValue="21:00" className="w-28" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm">Dias:</Label>
+                        <Select defaultValue="seg-sex">
+                          <SelectTrigger className="w-40">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="seg-sex">Seg - Sex</SelectItem>
+                            <SelectItem value="seg-sab">Seg - Sáb</SelectItem>
+                            <SelectItem value="todos">Todos os dias</SelectItem>
+                            <SelectItem value="personalizado">Personalizado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" className="text-red-600 hover:bg-red-50 hover:text-red-700">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Prioridade de Entrega */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Prioridade de Entrega</CardTitle>
+              <CardDescription>
+                Define a ordem de prioridade para agendar entregas nos pedidos
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-lg bg-[#EFEFEF] p-4">
+                <ol className="space-y-3">
+                  <li className="flex items-center gap-3">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#905BF4] text-xs font-bold text-white">1</span>
+                    <span className="font-medium text-[#0F032D]">Horário Comercial</span>
+                    <span className="text-sm text-muted-foreground">- Usa o horário comercial padrão da empresa</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#4E2BCC] text-xs font-bold text-white">2</span>
+                    <span className="font-medium text-[#0F032D]">Período Personalizado</span>
+                    <span className="text-sm text-muted-foreground">- Manhã, Tarde ou Noite</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0F032D] text-xs font-bold text-white">3</span>
+                    <span className="font-medium text-[#0F032D]">Intervalo Específico</span>
+                    <span className="text-sm text-muted-foreground">- Definido no momento do pedido</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-400 text-xs font-bold text-white">4</span>
+                    <span className="font-medium text-[#0F032D]">Horário Fixo</span>
+                    <span className="text-sm text-muted-foreground">- Hora exata escolhida pelo cliente</span>
+                  </li>
+                </ol>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                * Prioridades mais altas oferecem maior flexibilidade logística e facilitam a otimização de rotas.
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
