@@ -103,11 +103,12 @@ export default function DashboardLayout({
         {/* Logo */}
         <div className="flex h-16 items-center justify-between px-4">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <Image
-              src={LOGO_WHITE}
-              alt="LocLog"
-              width={100}
-              height={35}
+<Image
+                src={LOGO_WHITE}
+                alt="LocLog"
+                width={100}
+                height={35}
+                style={{ width: "auto", height: "auto" }}
               className="h-8 w-auto"
             />
           </Link>
@@ -236,6 +237,7 @@ export default function DashboardLayout({
                 alt="LocLog"
                 width={32}
                 height={32}
+                style={{ width: "auto", height: "auto" }}
                 className="h-8 w-8 rounded-lg bg-[#905BF4] p-1"
               />
             </div>
@@ -270,7 +272,7 @@ export default function DashboardLayout({
                   <span className="text-xs text-[#0F032D]/60">Há 5 minutos</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="flex flex-col items-start gap-1 py-3">
-                  <span className="font-medium text-[#0F032D]">Pagamento confirmado - #4521</span>
+                  <span className="font-medium text-[#0F032D]">Pagamento confirmado - PED-4521</span>
                   <span className="text-xs text-[#0F032D]/60">Há 1 hora</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="flex flex-col items-start gap-1 py-3">

@@ -44,7 +44,7 @@ import {
 // Dados mock
 const orders = [
   {
-    id: "#4521",
+    id: "PED-4521",
     client: "Empresa Festa Feliz",
     phone: "(11) 99999-1234",
     address: "Rua das Flores, 123 - São Paulo, SP",
@@ -63,7 +63,7 @@ const orders = [
     deliveryPerson: "Carlos",
   },
   {
-    id: "#4520",
+    id: "PED-4520",
     client: "Maria Santos",
     phone: "(11) 97777-9012",
     address: "Rua Augusta, 500 - São Paulo, SP",
@@ -81,7 +81,7 @@ const orders = [
     deliveryPerson: "João",
   },
   {
-    id: "#4519",
+    id: "PED-4519",
     client: "Buffet Sabor & Arte",
     phone: "(11) 96666-3456",
     address: "Rua dos Eventos, 789 - São Paulo, SP",

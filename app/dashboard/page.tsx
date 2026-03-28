@@ -64,7 +64,7 @@ const kpis = [
 
 const recentOrders = [
   {
-    id: "#4521",
+    id: "PED-4521",
     client: "Empresa Festa Feliz",
     items: "50 cadeiras, 10 mesas",
     status: "waiting",
@@ -73,7 +73,7 @@ const recentOrders = [
     date: "05/12/2026",
   },
   {
-    id: "#4520",
+    id: "PED-4520",
     client: "Maria Santos",
     items: "20 cadeiras, 5 mesas, 10 toalhas",
     status: "delivered",
@@ -82,7 +82,7 @@ const recentOrders = [
     date: "04/12/2026",
   },
   {
-    id: "#4519",
+    id: "PED-4519",
     client: "Buffet Sabor & Arte",
     items: "100 cadeiras, 20 mesas",
     status: "in_progress",
@@ -91,7 +91,7 @@ const recentOrders = [
     date: "03/12/2026",
   },
   {
-    id: "#4518",
+    id: "PED-4518",
     client: "João Silva",
     items: "15 cadeiras",
     status: "completed",

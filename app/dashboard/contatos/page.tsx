@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -142,6 +143,7 @@ export default function ContatosPage() {
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Novo Contato</DialogTitle>
+              <DialogDescription>Preencha os dados do novo contato</DialogDescription>
             </DialogHeader>
             <form className="space-y-4">
               <div className="space-y-2">

@@ -46,8 +46,8 @@ import {
 // Dados mock
 const invoices = [
   {
-    id: "#F-001",
-    orderId: "#4521",
+    id: "FAT-001",
+    orderId: "PED-4521",
     client: "Empresa Festa Feliz",
     amount: "R$ 2.350,00",
     status: "pending",
@@ -56,8 +56,8 @@ const invoices = [
     paymentMethod: null,
   },
   {
-    id: "#F-002",
-    orderId: "#4520",
+    id: "FAT-002",
+    orderId: "PED-4520",
     client: "Maria Santos",
     amount: "R$ 1.125,00",
     status: "paid",
@@ -67,8 +67,8 @@ const invoices = [
     paidAt: "04/12/2026",
   },
   {
-    id: "#F-003",
-    orderId: "#4519",
+    id: "FAT-003",
+    orderId: "PED-4519",
     client: "Buffet Sabor & Arte",
     amount: "R$ 5.200,00",
     status: "partial",
@@ -78,8 +78,8 @@ const invoices = [
     paymentMethod: "card",
   },
   {
-    id: "#F-004",
-    orderId: "#4518",
+    id: "FAT-004",
+    orderId: "PED-4518",
     client: "João Silva",
     amount: "R$ 525,00",
     status: "paid",
@@ -89,8 +89,8 @@ const invoices = [
     paidAt: "02/12/2026",
   },
   {
-    id: "#F-005",
-    orderId: "#4517",
+    id: "FAT-005",
+    orderId: "PED-4517",
     client: "Festa Kids",
     amount: "R$ 1.110,00",
     status: "cancelled",

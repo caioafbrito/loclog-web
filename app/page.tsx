@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -398,6 +399,7 @@ export default function LandingPage() {
                 alt="LocLog"
                 width={120}
                 height={40}
+                style={{ width: "auto", height: "auto" }}
                 className="h-10 w-auto"
               />
             </Link>
@@ -762,6 +764,7 @@ export default function LandingPage() {
               <DialogContent className="max-h-[90vh] max-w-7xl overflow-y-auto bg-white">
                 <DialogHeader>
                   <DialogTitle className="text-2xl text-[#0F032D]">Comparação Completa de Planos</DialogTitle>
+                  <DialogDescription>Compare todos os recursos disponíveis em cada plano</DialogDescription>
                 </DialogHeader>
                 
                 <Tabs defaultValue="funcionalidades" className="mt-6">
@@ -1060,6 +1063,7 @@ export default function LandingPage() {
                 alt="LocLog"
                 width={120}
                 height={40}
+                style={{ width: "auto", height: "auto" }}
                 className="mb-4 h-10 w-auto"
               />
               <p className="max-w-sm text-sm text-[#EFEFEF]/60">
