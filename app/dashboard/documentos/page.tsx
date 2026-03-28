@@ -91,8 +91,8 @@ const documentosRecentes = [
 export default function DocumentosPage() {
   const { configuracao } = useOrganizacaoStore()
   const planoAtual = configuracao?.plano || "starter"
-  const adicionaisAtivos = configuracao?.adicionaisAtivos || []
-  const pacotesAtivos = configuracao?.pacotesAtivos || []
+  const adicionais = configuracao?.adicionais || []
+  const pacotes = configuracao?.pacotes || []
   
   const [dialogAberto, setDialogAberto] = useState(false)
   const [tipoSelecionado, setTipoSelecionado] = useState<string | null>(null)
@@ -100,10 +100,10 @@ export default function DocumentosPage() {
 
   const verificarAcesso = (tipo: typeof tiposDocumento[0]) => {
     // Verifica pacote contábil
-    if (pacotesAtivos.includes("pacoteContabil")) return true
+    if (pacotes.includes("pacoteContabil" as any)) return true
     
     // Verifica adicional específico
-    if (tipo.adicional && adicionaisAtivos.includes(tipo.adicional)) return true
+    if (tipo.adicional && adicionais.includes(tipo.adicional as any)) return true
     
     // Contrato está disponível em todos os planos
     if (tipo.id === "contrato") return true

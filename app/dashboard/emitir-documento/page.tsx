@@ -85,7 +85,10 @@ const pedidosMock = [
 ]
 
 export default function EmitirDocumentoPage() {
-  const { adicionaisAtivos, pacotesAtivos } = useOrganizacaoStore()
+  const { configuracao } = useOrganizacaoStore()
+  const adicionais = configuracao?.adicionais || []
+  const pacotes = configuracao?.pacotes || []
+  
   const [tipoSelecionado, setTipoSelecionado] = useState<string | null>(null)
   const [pedidoSelecionado, setPedidoSelecionado] = useState<string>("")
   const [buscaPedido, setBuscaPedido] = useState("")
@@ -94,8 +97,8 @@ export default function EmitirDocumentoPage() {
   const verificarDisponibilidade = (tipo: typeof tiposDocumento[0]) => {
     if (!tipo.requerAdicional && !tipo.requerPacote) return true
     
-    const temPacote = tipo.requerPacote ? pacotesAtivos.includes(tipo.requerPacote) : false
-    const temAdicional = tipo.requerAdicional ? adicionaisAtivos.includes(tipo.requerAdicional) : false
+    const temPacote = tipo.requerPacote ? pacotes.includes(tipo.requerPacote as any) : false
+    const temAdicional = tipo.requerAdicional ? adicionais.includes(tipo.requerAdicional as any) : false
     
     return temPacote || temAdicional
   }
