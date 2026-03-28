@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -202,13 +203,13 @@ export default function InventarioPage() {
             Gerencie todos os produtos disponíveis para aluguel
           </p>
         </div>
-        <Dialog open={isNewProductOpen} onOpenChange={setIsNewProductOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-[#905BF4] hover:bg-[#4E2BCC]">
+        <Button className="bg-[#905BF4] hover:bg-[#4E2BCC]" asChild>
+            <Link href="/dashboard/inventario/novo">
               <Plus className="mr-2 h-4 w-4" />
               Novo Produto
-            </Button>
-          </DialogTrigger>
+            </Link>
+          </Button>
+          <Dialog open={isNewProductOpen} onOpenChange={setIsNewProductOpen}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Adicionar Novo Produto</DialogTitle>

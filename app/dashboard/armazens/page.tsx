@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -132,13 +133,13 @@ export default function ArmazensPage() {
             Gerencie os locais de armazenamento do seu inventário
           </p>
         </div>
-        <Dialog open={isNewWarehouseOpen} onOpenChange={setIsNewWarehouseOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-[#905BF4] hover:bg-[#4E2BCC]">
+        <Button className="bg-[#905BF4] hover:bg-[#4E2BCC]" asChild>
+            <Link href="/dashboard/armazens/novo">
               <Plus className="mr-2 h-4 w-4" />
               Novo Armazém
-            </Button>
-          </DialogTrigger>
+            </Link>
+          </Button>
+          <Dialog open={isNewWarehouseOpen} onOpenChange={setIsNewWarehouseOpen}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Adicionar Novo Armazém</DialogTitle>

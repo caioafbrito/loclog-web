@@ -660,6 +660,7 @@ export default function PedidosPage() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Detalhes do Pedido {viewDialog.order?.id}</DialogTitle>
+            <DialogDescription>Informações completas sobre o pedido selecionado</DialogDescription>
           </DialogHeader>
           {viewDialog.order && (
             <div className="space-y-6">

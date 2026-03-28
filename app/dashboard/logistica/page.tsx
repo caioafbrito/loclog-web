@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -49,7 +50,9 @@ import {
   DollarSign,
   AlertCircle,
   Play,
-  Square
+  Square,
+  Plus,
+  Route
 } from "lucide-react"
 
 // Mock data para entregas do dia
@@ -184,7 +187,13 @@ export default function LogisticaPage() {
             Gerencie entregas e retiradas do dia
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button className="bg-[#905BF4] hover:bg-[#4E2BCC]" asChild>
+            <Link href="/dashboard/logistica/nova-rota">
+              <Plus className="mr-2 h-4 w-4" />
+              Nova Rota
+            </Link>
+          </Button>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className="w-[180px] justify-start text-left font-normal">

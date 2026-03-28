@@ -689,6 +689,7 @@ export default function OrcamentosPage() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Detalhes do Orçamento {viewDialog.quote?.id}</DialogTitle>
+            <DialogDescription>Informações completas sobre o orçamento selecionado</DialogDescription>
           </DialogHeader>
           {viewDialog.quote && (
             <div className="space-y-6">
