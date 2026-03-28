@@ -46,10 +46,12 @@ export default function LoginPage() {
           <Image
             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Logotipo%20Branco%20%2B%20Fundo%20Transparente%20%28Sem%20O%20com%20efeito%29-2zkcgX2G3n8UrYsauTJMCYFZuWEHbX.png"
             alt="LocLog"
-            width={100}
-            height={30}
-            style={{ width: "100px", height: "auto" }}
-            className="max-h-8"
+            width={120}
+            height={48}
+            style={{ width: "auto", height: "auto" }}
+            className="h-10 w-auto"
+            loading="eager"
+            priority
           />
         </div>
         
@@ -78,10 +80,10 @@ export default function LoginPage() {
             <Image
               src={LOGO}
               alt="LocLog"
-              width={100}
-              height={30}
-              style={{ width: "100px", height: "auto" }}
-              className="max-h-8"
+              width={120}
+              height={48}
+              style={{ width: "auto", height: "auto" }}
+              className="h-10 w-auto"
             />
           </div>
 

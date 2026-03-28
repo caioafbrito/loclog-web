@@ -397,10 +397,10 @@ export default function LandingPage() {
               <Image
                 src={LOGO_HEADER}
                 alt="LocLog"
-                width={80}
-                height={24}
-                style={{ width: "80px", height: "auto" }}
-                className="max-h-6"
+                width={100}
+                height={40}
+                style={{ width: "auto", height: "auto" }}
+                className="h-9 w-auto"
               />
             </Link>
 
@@ -1065,10 +1065,10 @@ export default function LandingPage() {
               <Image
                 src={LOGO_FOOTER}
                 alt="LocLog"
-                width={80}
-                height={24}
-                style={{ width: "80px", height: "auto" }}
-                className="mb-4 max-h-6"
+                width={100}
+                height={40}
+                style={{ width: "auto", height: "auto" }}
+                className="mb-4 h-9 w-auto"
               />
               <p className="max-w-sm text-sm text-[#EFEFEF]/60">
                 O sistema completo para gestão de locadoras de bens móveis. 
