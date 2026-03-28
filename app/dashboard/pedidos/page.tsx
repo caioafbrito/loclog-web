@@ -28,17 +28,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Plus,
   Search,
@@ -56,10 +47,13 @@ import {
   FileText,
   CreditCard,
   Package,
-  AlertCircle,
   Download,
-  Send,
+  Ban,
+  RefreshCw,
+  Loader2,
 } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { ORDER_CANCELLATION_REASONS } from "@/lib/types"
 
 // Dados mock
 const initialOrders = [
@@ -81,6 +75,7 @@ const initialOrders = [
     pickupDate: "06/12/2026",
     pickupTime: "20:00",
     deliveryPerson: "Carlos",
+    cancellationReason: null as string | null,
   },
   {
     id: "PED-4520",
@@ -99,6 +94,7 @@ const initialOrders = [
     pickupDate: "04/12/2026",
     pickupTime: "18:00",
     deliveryPerson: "João",
+    cancellationReason: null as string | null,
   },
   {
     id: "PED-4519",
@@ -117,6 +113,7 @@ const initialOrders = [
     pickupDate: "05/12/2026",
     pickupTime: "22:00",
     deliveryPerson: "Pedro",
+    cancellationReason: null as string | null,
   },
   {
     id: "PED-4518",
@@ -134,6 +131,7 @@ const initialOrders = [
     pickupDate: "02/12/2026",
     pickupTime: "16:00",
     deliveryPerson: "Carlos",
+    cancellationReason: null as string | null,
   },
   {
     id: "PED-4517",
@@ -152,15 +150,18 @@ const initialOrders = [
     pickupDate: "01/12/2026",
     pickupTime: "20:00",
     deliveryPerson: null,
+    cancellationReason: "Cliente desistiu do evento",
   },
 ]
 
-const statusConfig = {
-  waiting: { label: "Aguardando Retirada", icon: Clock, color: "bg-yellow-100 text-yellow-700", iconColor: "text-yellow-600" },
-  in_progress: { label: "Em Andamento", icon: Truck, color: "bg-blue-100 text-blue-700", iconColor: "text-blue-600" },
-  delivered: { label: "Entregue", icon: CheckCircle2, color: "bg-green-100 text-green-700", iconColor: "text-green-600" },
-  completed: { label: "Concluído", icon: CheckCircle2, color: "bg-[#905BF4]/10 text-[#905BF4]", iconColor: "text-[#905BF4]" },
-  cancelled: { label: "Cancelado", icon: XCircle, color: "bg-red-100 text-red-700", iconColor: "text-red-600" },
+type OrderStatus = "waiting" | "in_progress" | "delivered" | "completed" | "cancelled"
+
+const statusConfig: Record<OrderStatus, { label: string; icon: typeof Clock; color: string }> = {
+  waiting: { label: "Aguardando Retirada", icon: Clock, color: "bg-yellow-100 text-yellow-700" },
+  in_progress: { label: "Em Andamento", icon: Truck, color: "bg-blue-100 text-blue-700" },
+  delivered: { label: "Entregue", icon: CheckCircle2, color: "bg-green-100 text-green-700" },
+  completed: { label: "Concluído", icon: CheckCircle2, color: "bg-[#905BF4]/10 text-[#905BF4]" },
+  cancelled: { label: "Cancelado", icon: Ban, color: "bg-red-100 text-red-700" },
 }
 
 const paymentStatusConfig = {
@@ -178,18 +179,23 @@ const statusOptions = [
 ]
 
 export default function PedidosPage() {
+  const { toast } = useToast()
   const [orders, setOrders] = useState(initialOrders)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
+  const [isLoading, setIsLoading] = useState(false)
   
   // Dialog states
-  const [cancelDialog, setCancelDialog] = useState<{ open: boolean; orderId: string | null }>({ open: false, orderId: null })
-  const [statusDialog, setStatusDialog] = useState<{ open: boolean; orderId: string | null; currentStatus: string }>({ open: false, orderId: null, currentStatus: "" })
+  const [cancelDialog, setCancelDialog] = useState<{ open: boolean; order: typeof initialOrders[0] | null }>({ open: false, order: null })
+  const [statusDialog, setStatusDialog] = useState<{ open: boolean; order: typeof initialOrders[0] | null }>({ open: false, order: null })
   const [chargeDialog, setChargeDialog] = useState<{ open: boolean; orderId: string | null }>({ open: false, orderId: null })
   const [documentDialog, setDocumentDialog] = useState<{ open: boolean; orderId: string | null }>({ open: false, orderId: null })
   const [viewDialog, setViewDialog] = useState<{ open: boolean; order: typeof initialOrders[0] | null }>({ open: false, order: null })
   
-  const [newStatus, setNewStatus] = useState("")
+  // Form states
+  const [newStatus, setNewStatus] = useState<OrderStatus>("waiting")
+  const [cancelReason, setCancelReason] = useState("")
+  const [cancelDetails, setCancelDetails] = useState("")
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -208,38 +214,66 @@ export default function PedidosPage() {
   }
 
   // Handlers
-  const handleCancelOrder = () => {
-    if (cancelDialog.orderId) {
-      setOrders(orders.map(o => 
-        o.id === cancelDialog.orderId 
-          ? { ...o, status: "cancelled", paymentStatus: "refunded" }
-          : o
-      ))
-      setCancelDialog({ open: false, orderId: null })
-    }
+  const handleCancelOrder = async () => {
+    if (!cancelDialog.order || !cancelReason) return
+    
+    setIsLoading(true)
+    await new Promise(r => setTimeout(r, 500))
+    
+    const reasonLabel = ORDER_CANCELLATION_REASONS.find(r => r.id === cancelReason)?.label || cancelReason
+    const fullReason = cancelDetails ? `${reasonLabel}: ${cancelDetails}` : reasonLabel
+    
+    setOrders(orders.map(o => 
+      o.id === cancelDialog.order?.id 
+        ? { ...o, status: "cancelled" as const, paymentStatus: "refunded" as const, cancellationReason: fullReason }
+        : o
+    ))
+    
+    setCancelDialog({ open: false, order: null })
+    setCancelReason("")
+    setCancelDetails("")
+    setIsLoading(false)
+    
+    toast({
+      title: "Pedido cancelado",
+      description: `O pedido ${cancelDialog.order.id} foi cancelado com sucesso.`,
+    })
   }
 
-  const handleUpdateStatus = () => {
-    if (statusDialog.orderId && newStatus) {
-      setOrders(orders.map(o => 
-        o.id === statusDialog.orderId 
-          ? { ...o, status: newStatus }
-          : o
-      ))
-      setStatusDialog({ open: false, orderId: null, currentStatus: "" })
-      setNewStatus("")
-    }
+  const handleUpdateStatus = async () => {
+    if (!statusDialog.order) return
+    
+    setIsLoading(true)
+    await new Promise(r => setTimeout(r, 500))
+    
+    setOrders(orders.map(o => 
+      o.id === statusDialog.order?.id 
+        ? { ...o, status: newStatus }
+        : o
+    ))
+    
+    setStatusDialog({ open: false, order: null })
+    setIsLoading(false)
+    
+    toast({
+      title: "Status atualizado",
+      description: `O status foi alterado para ${statusConfig[newStatus].label}.`,
+    })
   }
 
   const handleGeneratePDF = (type: "pedido" | "entrega" | "contrato") => {
-    // Simular geração de PDF
-    alert(`PDF de ${type} gerado com sucesso! O download iniciará automaticamente.`)
+    toast({
+      title: "PDF gerado",
+      description: `O documento de ${type} foi gerado com sucesso.`,
+    })
     setDocumentDialog({ open: false, orderId: null })
   }
 
   const handleCharge = (method: "pix" | "boleto" | "cartao") => {
-    // Simular cobrança
-    alert(`Cobrança via ${method.toUpperCase()} enviada com sucesso!`)
+    toast({
+      title: "Cobrança enviada",
+      description: `Cobrança via ${method.toUpperCase()} enviada com sucesso!`,
+    })
     setChargeDialog({ open: false, orderId: null })
   }
 
@@ -266,12 +300,12 @@ export default function PedidosPage() {
           return (
             <Card key={key} className="border-none shadow-md">
               <CardContent className="flex items-center gap-3 p-4">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${config.color}`}>
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${config.color}`}>
                   <config.icon className="h-5 w-5" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-2xl font-bold text-[#0F032D]">{count}</p>
-                  <p className="text-xs text-[#0F032D]/60">{config.label}</p>
+                  <p className="truncate text-xs text-[#0F032D]/60">{config.label}</p>
                 </div>
               </CardContent>
             </Card>
@@ -310,166 +344,233 @@ export default function PedidosPage() {
 
       {/* Orders List */}
       <div className="space-y-4">
-        {filteredOrders.map((order) => {
-          const status = statusConfig[order.status as keyof typeof statusConfig]
-          const payment = paymentStatusConfig[order.paymentStatus as keyof typeof paymentStatusConfig]
-          return (
-            <Card key={order.id} className="border-none shadow-md transition-shadow hover:shadow-lg">
-              <CardContent className="p-0">
-                <div className="flex flex-col lg:flex-row">
-                  {/* Order Info */}
-                  <div className="flex-1 p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div className="flex items-center gap-3">
-                        <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${status.color}`}>
-                          <status.icon className="h-6 w-6" />
-                        </div>
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-lg font-bold text-[#0F032D]">{order.id}</span>
-                            <Badge className={status.color}>{status.label}</Badge>
-                            <Badge className={payment.color}>{payment.label}</Badge>
+        {filteredOrders.length === 0 ? (
+          <Card className="border-none shadow-md">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Package className="mb-4 h-12 w-12 text-[#0F032D]/20" />
+              <p className="text-lg font-medium text-[#0F032D]">Nenhum pedido encontrado</p>
+              <p className="text-[#0F032D]/60">Tente ajustar os filtros ou criar um novo pedido</p>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredOrders.map((order) => {
+            const status = statusConfig[order.status as OrderStatus]
+            const payment = paymentStatusConfig[order.paymentStatus as keyof typeof paymentStatusConfig]
+            return (
+              <Card key={order.id} className="border-none shadow-md transition-shadow hover:shadow-lg">
+                <CardContent className="p-0">
+                  <div className="flex flex-col lg:flex-row">
+                    {/* Order Info */}
+                    <div className="flex-1 p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div className="flex items-center gap-3">
+                          <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${status.color}`}>
+                            <status.icon className="h-6 w-6" />
                           </div>
-                          <p className="font-medium text-[#0F032D]">{order.client}</p>
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-lg font-bold text-[#0F032D]">{order.id}</span>
+                              <Badge className={status.color}>{status.label}</Badge>
+                              <Badge className={payment.color}>{payment.label}</Badge>
+                            </div>
+                            <p className="font-medium text-[#0F032D]">{order.client}</p>
+                            {order.cancellationReason && (
+                              <p className="mt-1 text-xs text-red-600">
+                                Motivo: {order.cancellationReason}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-2xl font-bold text-[#0F032D]">{order.total}</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-[#0F032D]">{order.total}</p>
+
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        <div className="flex items-center gap-2 text-sm text-[#0F032D]/70">
+                          <Phone className="h-4 w-4 shrink-0" />
+                          {order.phone}
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-[#0F032D]/70">
+                          <MapPin className="h-4 w-4 shrink-0" />
+                          <span className="truncate">{order.address}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-[#0F032D]/70">
+                          <Calendar className="h-4 w-4 shrink-0" />
+                          Entrega: {order.deliveryDate} às {order.deliveryTime}
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-[#0F032D]/70">
+                          <Calendar className="h-4 w-4 shrink-0" />
+                          Retirada: {order.pickupDate} às {order.pickupTime}
+                        </div>
+                      </div>
+
+                      <div className="mt-4">
+                        <p className="text-sm font-medium text-[#0F032D]/70">Itens:</p>
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          {order.items.map((item, i) => (
+                            <Badge key={i} variant="outline" className="border-[#D0D0D8]">
+                              {item.qty}x {item.name}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
                     </div>
 
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                      <div className="flex items-center gap-2 text-sm text-[#0F032D]/70">
-                        <Phone className="h-4 w-4 shrink-0" />
-                        {order.phone}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-[#0F032D]/70">
-                        <MapPin className="h-4 w-4 shrink-0" />
-                        <span className="truncate">{order.address}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-[#0F032D]/70">
-                        <Calendar className="h-4 w-4 shrink-0" />
-                        Entrega: {order.deliveryDate} às {order.deliveryTime}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-[#0F032D]/70">
-                        <Calendar className="h-4 w-4 shrink-0" />
-                        Retirada: {order.pickupDate} às {order.pickupTime}
-                      </div>
-                    </div>
-
-                    <div className="mt-4">
-                      <p className="text-sm font-medium text-[#0F032D]/70">Itens:</p>
-                      <div className="mt-1 flex flex-wrap gap-2">
-                        {order.items.map((item, i) => (
-                          <Badge key={i} variant="outline" className="border-[#D0D0D8]">
-                            {item.qty}x {item.name}
-                          </Badge>
-                        ))}
-                      </div>
+                    {/* Actions */}
+                    <div className="flex items-center justify-end gap-2 border-t border-[#EFEFEF] bg-[#EFEFEF]/50 p-4 lg:w-48 lg:flex-col lg:justify-center lg:border-l lg:border-t-0">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="flex-1 lg:w-full"
+                        onClick={() => setViewDialog({ open: true, order })}
+                      >
+                        <Eye className="mr-2 h-4 w-4" />
+                        Ver
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="outline" className="flex-1 lg:w-full">
+                            <MoreVertical className="mr-2 h-4 w-4" />
+                            Ações
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/pedidos/novo?edit=${order.id}`}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Editar
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setDocumentDialog({ open: true, orderId: order.id })}>
+                            <FileText className="mr-2 h-4 w-4" />
+                            Emitir Documento
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setChargeDialog({ open: true, orderId: order.id })}>
+                            <CreditCard className="mr-2 h-4 w-4" />
+                            Cobrar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => {
+                            setNewStatus(order.status as OrderStatus)
+                            setStatusDialog({ open: true, order })
+                          }}>
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            Atualizar Status
+                          </DropdownMenuItem>
+                          {order.status !== "cancelled" && order.status !== "completed" && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                className="text-red-600"
+                                onClick={() => setCancelDialog({ open: true, order })}
+                              >
+                                <Ban className="mr-2 h-4 w-4" />
+                                Cancelar Pedido
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center justify-end gap-2 border-t border-[#EFEFEF] bg-[#EFEFEF]/50 p-4 lg:w-48 lg:flex-col lg:justify-center lg:border-l lg:border-t-0">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="flex-1 lg:w-full"
-                      onClick={() => setViewDialog({ open: true, order })}
-                    >
-                      <Eye className="mr-2 h-4 w-4" />
-                      Ver
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button size="sm" variant="outline" className="flex-1 lg:w-full">
-                          <MoreVertical className="mr-2 h-4 w-4" />
-                          Ações
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/pedidos/novo?edit=${order.id}`}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Editar
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setDocumentDialog({ open: true, orderId: order.id })}>
-                          <FileText className="mr-2 h-4 w-4" />
-                          Emitir Documento
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setChargeDialog({ open: true, orderId: order.id })}>
-                          <CreditCard className="mr-2 h-4 w-4" />
-                          Cobrar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                          setStatusDialog({ open: true, orderId: order.id, currentStatus: order.status })
-                          setNewStatus(order.status)
-                        }}>
-                          <Truck className="mr-2 h-4 w-4" />
-                          Atualizar Status
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          className="text-red-600"
-                          onClick={() => setCancelDialog({ open: true, orderId: order.id })}
-                          disabled={order.status === "cancelled" || order.status === "completed"}
-                        >
-                          <XCircle className="mr-2 h-4 w-4" />
-                          Cancelar
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )
-        })}
+                </CardContent>
+              </Card>
+            )
+          })
+        )}
       </div>
 
       {/* Cancel Dialog */}
-      <AlertDialog open={cancelDialog.open} onOpenChange={(open) => setCancelDialog({ open, orderId: open ? cancelDialog.orderId : null })}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Cancelar Pedido</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja cancelar o pedido {cancelDialog.orderId}? 
-              Esta ação não pode ser desfeita e o pagamento será estornado se já tiver sido realizado.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Não, manter pedido</AlertDialogCancel>
-            <AlertDialogAction 
-              className="bg-red-600 hover:bg-red-700"
+      <Dialog open={cancelDialog.open} onOpenChange={(open) => {
+        setCancelDialog({ open, order: open ? cancelDialog.order : null })
+        if (!open) {
+          setCancelReason("")
+          setCancelDetails("")
+        }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <Ban className="h-5 w-5" />
+              Cancelar Pedido
+            </DialogTitle>
+            <DialogDescription>
+              Cancelar o pedido {cancelDialog.order?.id}. Esta ação não pode ser desfeita e o pagamento será estornado.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Motivo do Cancelamento *</Label>
+              <Select value={cancelReason} onValueChange={setCancelReason}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o motivo..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {ORDER_CANCELLATION_REASONS.map((reason) => (
+                    <SelectItem key={reason.id} value={reason.id}>
+                      {reason.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Detalhes Adicionais</Label>
+              <Textarea
+                placeholder="Informações adicionais sobre o cancelamento..."
+                value={cancelDetails}
+                onChange={(e) => setCancelDetails(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelDialog({ open: false, order: null })}>
+              Voltar
+            </Button>
+            <Button 
+              variant="destructive" 
               onClick={handleCancelOrder}
+              disabled={!cancelReason || isLoading}
             >
-              Sim, cancelar pedido
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Confirmar Cancelamento
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Status Dialog */}
-      <Dialog open={statusDialog.open} onOpenChange={(open) => setStatusDialog({ open, orderId: open ? statusDialog.orderId : null, currentStatus: open ? statusDialog.currentStatus : "" })}>
+      <Dialog open={statusDialog.open} onOpenChange={(open) => setStatusDialog({ open, order: open ? statusDialog.order : null })}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Atualizar Status</DialogTitle>
             <DialogDescription>
-              Altere o status logístico do pedido {statusDialog.orderId}
+              Altere o status logístico do pedido {statusDialog.order?.id}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Novo Status</Label>
-              <Select value={newStatus} onValueChange={setNewStatus}>
+              <Select value={newStatus} onValueChange={(v) => setNewStatus(v as OrderStatus)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecionar status..." />
                 </SelectTrigger>
                 <SelectContent>
                   {statusOptions.map(option => (
                     <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                      <div className="flex items-center gap-2">
+                        {statusConfig[option.value as OrderStatus] && (
+                          <>
+                            {(() => {
+                              const StatusIcon = statusConfig[option.value as OrderStatus].icon
+                              return <StatusIcon className="h-4 w-4" />
+                            })()}
+                          </>
+                        )}
+                        {option.label}
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -477,10 +578,15 @@ export default function PedidosPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setStatusDialog({ open: false, orderId: null, currentStatus: "" })}>
+            <Button variant="outline" onClick={() => setStatusDialog({ open: false, order: null })}>
               Cancelar
             </Button>
-            <Button className="bg-[#905BF4] hover:bg-[#4E2BCC]" onClick={handleUpdateStatus}>
+            <Button 
+              className="bg-[#905BF4] hover:bg-[#4E2BCC]" 
+              onClick={handleUpdateStatus}
+              disabled={isLoading}
+            >
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Atualizar Status
             </Button>
           </DialogFooter>
@@ -595,6 +701,13 @@ export default function PedidosPage() {
                   </div>
                 </div>
               </div>
+
+              {viewDialog.order.cancellationReason && (
+                <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+                  <p className="text-sm font-medium text-red-700">Motivo do Cancelamento:</p>
+                  <p className="text-sm text-red-600">{viewDialog.order.cancellationReason}</p>
+                </div>
+              )}
             </div>
           )}
           <DialogFooter>

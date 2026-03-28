@@ -64,9 +64,10 @@ export default function RegisterPage() {
           <Image
             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Logotipo%20Branco%20%2B%20Fundo%20Transparente%20%28Sem%20O%20com%20efeito%29-2zkcgX2G3n8UrYsauTJMCYFZuWEHbX.png"
             alt="LocLog"
-            width={140}
-            height={50}
-            className="h-12 w-auto"
+            width={100}
+            height={30}
+            style={{ width: "100px", height: "auto" }}
+            className="max-h-8"
           />
         </div>
         
@@ -111,21 +112,23 @@ export default function RegisterPage() {
             <Image
               src={LOGO}
               alt="LocLog"
-              width={140}
-              height={50}
-              className="h-12 w-auto"
+              width={100}
+              height={30}
+              style={{ width: "100px", height: "auto" }}
+              className="max-h-8"
             />
           </div>
 
           <Card className="border-none shadow-xl">
             <CardHeader className="space-y-1 text-center">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl lg:hidden">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl lg:hidden">
                 <Image
                   src={ICON_ROXO}
                   alt="LocLog"
-                  width={64}
-                  height={64}
-                  className="h-full w-full object-cover"
+                  width={48}
+                  height={48}
+                  style={{ width: "48px", height: "48px" }}
+                  className="object-cover"
                 />
               </div>
               <CardTitle className="text-2xl font-bold text-[#0F032D]">

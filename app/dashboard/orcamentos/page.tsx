@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -29,17 +29,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
 import {
   Plus,
   Search,
@@ -59,7 +50,13 @@ import {
   Send,
   Copy,
   Trash2,
+  Ban,
+  RefreshCw,
+  Loader2,
+  AlertTriangle,
 } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { QUOTATION_CANCELLATION_REASONS } from "@/lib/types"
 
 // Dados mock
 const initialQuotations = [
@@ -78,6 +75,7 @@ const initialQuotations = [
     createdAt: "03/12/2026",
     validUntil: "10/12/2026",
     eventDate: "15/12/2026",
+    cancellationReason: null as string | null,
   },
   {
     id: "#Q-197",
@@ -96,6 +94,7 @@ const initialQuotations = [
     createdAt: "02/12/2026",
     validUntil: "09/12/2026",
     eventDate: "20/12/2026",
+    cancellationReason: null as string | null,
   },
   {
     id: "#Q-196",
@@ -113,6 +112,7 @@ const initialQuotations = [
     createdAt: "01/12/2026",
     validUntil: "08/12/2026",
     eventDate: "18/12/2026",
+    cancellationReason: null as string | null,
   },
   {
     id: "#Q-195",
@@ -130,6 +130,7 @@ const initialQuotations = [
     createdAt: "28/11/2026",
     validUntil: "05/12/2026",
     eventDate: "12/12/2026",
+    cancellationReason: null as string | null,
   },
   {
     id: "#Q-194",
@@ -147,15 +148,19 @@ const initialQuotations = [
     createdAt: "20/11/2026",
     validUntil: "27/11/2026",
     eventDate: "30/11/2026",
+    cancellationReason: null as string | null,
   },
 ]
 
-const statusConfig = {
+type QuoteStatus = "draft" | "sent" | "accepted" | "rejected" | "expired" | "cancelled"
+
+const statusConfig: Record<QuoteStatus, { label: string; icon: typeof Clock; color: string }> = {
   draft: { label: "Rascunho", icon: Clock, color: "bg-gray-100 text-gray-700" },
   sent: { label: "Enviado", icon: Send, color: "bg-blue-100 text-blue-700" },
   accepted: { label: "Aceito", icon: CheckCircle2, color: "bg-green-100 text-green-700" },
   rejected: { label: "Rejeitado", icon: XCircle, color: "bg-red-100 text-red-700" },
-  expired: { label: "Expirado", icon: Clock, color: "bg-orange-100 text-orange-700" },
+  expired: { label: "Expirado", icon: AlertTriangle, color: "bg-orange-100 text-orange-700" },
+  cancelled: { label: "Cancelado", icon: Ban, color: "bg-red-100 text-red-700" },
 }
 
 const sentViaConfig = {
@@ -165,15 +170,24 @@ const sentViaConfig = {
 
 export default function OrcamentosPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [quotations, setQuotations] = useState(initialQuotations)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
+  const [isLoading, setIsLoading] = useState(false)
   
   // Dialog states
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; quoteId: string | null }>({ open: false, quoteId: null })
   const [viewDialog, setViewDialog] = useState<{ open: boolean; quote: typeof initialQuotations[0] | null }>({ open: false, quote: null })
   const [whatsappDialog, setWhatsappDialog] = useState<{ open: boolean; quote: typeof initialQuotations[0] | null }>({ open: false, quote: null })
   const [convertDialog, setConvertDialog] = useState<{ open: boolean; quote: typeof initialQuotations[0] | null }>({ open: false, quote: null })
+  const [cancelDialog, setCancelDialog] = useState<{ open: boolean; quote: typeof initialQuotations[0] | null }>({ open: false, quote: null })
+  const [statusDialog, setStatusDialog] = useState<{ open: boolean; quote: typeof initialQuotations[0] | null }>({ open: false, quote: null })
+  
+  // Cancel form state
+  const [cancelReason, setCancelReason] = useState("")
+  const [cancelDetails, setCancelDetails] = useState("")
+  const [newStatus, setNewStatus] = useState<QuoteStatus>("draft")
 
   const filteredQuotations = quotations.filter(q => {
     const matchesSearch = q.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -189,13 +203,21 @@ export default function OrcamentosPage() {
     accepted: quotations.filter(q => q.status === "accepted"),
     rejected: quotations.filter(q => q.status === "rejected"),
     expired: quotations.filter(q => q.status === "expired"),
+    cancelled: quotations.filter(q => q.status === "cancelled"),
   }
 
   // Handlers
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (deleteDialog.quoteId) {
+      setIsLoading(true)
+      await new Promise(r => setTimeout(r, 500))
       setQuotations(quotations.filter(q => q.id !== deleteDialog.quoteId))
       setDeleteDialog({ open: false, quoteId: null })
+      setIsLoading(false)
+      toast({
+        title: "Orçamento excluído",
+        description: `O orçamento ${deleteDialog.quoteId} foi excluído com sucesso.`,
+      })
     }
   }
 
@@ -207,8 +229,13 @@ export default function OrcamentosPage() {
       status: "draft" as const,
       sentVia: null,
       createdAt: new Date().toLocaleDateString('pt-BR'),
+      cancellationReason: null,
     }
     setQuotations([duplicated, ...quotations])
+    toast({
+      title: "Orçamento duplicado",
+      description: `Uma cópia foi criada como ${newId}.`,
+    })
   }
 
   const handleSend = (quote: typeof initialQuotations[0], via: "whatsapp" | "pdf") => {
@@ -218,8 +245,58 @@ export default function OrcamentosPage() {
         : q
     ))
     if (via === "pdf") {
-      alert("PDF gerado e enviado com sucesso!")
+      toast({
+        title: "PDF gerado",
+        description: "O PDF do orçamento foi gerado e está pronto para download.",
+      })
     }
+  }
+
+  const handleCancel = async () => {
+    if (!cancelDialog.quote || !cancelReason) return
+    
+    setIsLoading(true)
+    await new Promise(r => setTimeout(r, 500))
+    
+    const reasonLabel = QUOTATION_CANCELLATION_REASONS.find(r => r.id === cancelReason)?.label || cancelReason
+    const fullReason = cancelDetails ? `${reasonLabel}: ${cancelDetails}` : reasonLabel
+    
+    setQuotations(quotations.map(q => 
+      q.id === cancelDialog.quote?.id 
+        ? { ...q, status: "cancelled" as const, cancellationReason: fullReason }
+        : q
+    ))
+    
+    setCancelDialog({ open: false, quote: null })
+    setCancelReason("")
+    setCancelDetails("")
+    setIsLoading(false)
+    
+    toast({
+      title: "Orçamento cancelado",
+      description: `O orçamento ${cancelDialog.quote.id} foi cancelado.`,
+    })
+  }
+
+  const handleUpdateStatus = async () => {
+    if (!statusDialog.quote) return
+    
+    setIsLoading(true)
+    await new Promise(r => setTimeout(r, 500))
+    
+    setQuotations(quotations.map(q => 
+      q.id === statusDialog.quote?.id 
+        ? { ...q, status: newStatus }
+        : q
+    ))
+    
+    setStatusDialog({ open: false, quote: null })
+    setIsLoading(false)
+    
+    toast({
+      title: "Status atualizado",
+      description: `O status foi alterado para ${statusConfig[newStatus].label}.`,
+    })
   }
 
   const generateWhatsAppText = (quote: typeof initialQuotations[0]) => {
@@ -227,16 +304,23 @@ export default function OrcamentosPage() {
     return `*Orçamento ${quote.id}*\n\nOlá ${quote.client}!\n\nSegue seu orçamento:\n\n${itemsText}\n\n*Total: ${quote.total}*\n\nData do evento: ${quote.eventDate}\nValidade: ${quote.validUntil}\n\nAguardamos seu retorno!`
   }
 
-  const handleConvertToOrder = () => {
+  const handleConvertToOrder = async () => {
     if (convertDialog.quote) {
-      // Simular conversão
-      alert(`Orçamento ${convertDialog.quote.id} convertido em pedido com sucesso!`)
+      setIsLoading(true)
+      await new Promise(r => setTimeout(r, 500))
+      
       setQuotations(quotations.map(q => 
         q.id === convertDialog.quote?.id 
           ? { ...q, status: "accepted" as const }
           : q
       ))
       setConvertDialog({ open: false, quote: null })
+      setIsLoading(false)
+      
+      toast({
+        title: "Pedido criado",
+        description: `O orçamento ${convertDialog.quote.id} foi convertido em pedido.`,
+      })
       router.push("/dashboard/pedidos")
     }
   }
@@ -258,18 +342,18 @@ export default function OrcamentosPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
         {Object.entries(statusConfig).map(([key, config]) => {
           const count = quotationsByStatus[key as keyof typeof quotationsByStatus]?.length || 0
           return (
             <Card key={key} className="border-none shadow-md">
               <CardContent className="flex items-center gap-3 p-4">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${config.color}`}>
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${config.color}`}>
                   <config.icon className="h-5 w-5" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-2xl font-bold text-[#0F032D]">{count}</p>
-                  <p className="text-xs text-[#0F032D]/60">{config.label}</p>
+                  <p className="truncate text-xs text-[#0F032D]/60">{config.label}</p>
                 </div>
               </CardContent>
             </Card>
@@ -308,164 +392,297 @@ export default function OrcamentosPage() {
 
       {/* Quotations List */}
       <div className="space-y-4">
-        {filteredQuotations.map((quotation) => {
-          const status = statusConfig[quotation.status as keyof typeof statusConfig]
-          const sentVia = quotation.sentVia ? sentViaConfig[quotation.sentVia as keyof typeof sentViaConfig] : null
-          return (
-            <Card key={quotation.id} className="border-none shadow-md transition-shadow hover:shadow-lg">
-              <CardContent className="p-0">
-                <div className="flex flex-col lg:flex-row">
-                  {/* Quotation Info */}
-                  <div className="flex-1 p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div className="flex items-center gap-3">
-                        <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${status.color}`}>
-                          <status.icon className="h-6 w-6" />
-                        </div>
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-lg font-bold text-[#0F032D]">{quotation.id}</span>
-                            <Badge className={status.color}>{status.label}</Badge>
-                            {sentVia && (
-                              <Badge variant="outline" className="border-[#D0D0D8]">
-                                <sentVia.icon className="mr-1 h-3 w-3" />
-                                {sentVia.label}
-                              </Badge>
+        {filteredQuotations.length === 0 ? (
+          <Card className="border-none shadow-md">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <FileText className="mb-4 h-12 w-12 text-[#0F032D]/20" />
+              <p className="text-lg font-medium text-[#0F032D]">Nenhum orçamento encontrado</p>
+              <p className="text-[#0F032D]/60">Tente ajustar os filtros ou criar um novo orçamento</p>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredQuotations.map((quotation) => {
+            const status = statusConfig[quotation.status as QuoteStatus]
+            const sentVia = quotation.sentVia ? sentViaConfig[quotation.sentVia as keyof typeof sentViaConfig] : null
+            return (
+              <Card key={quotation.id} className="border-none shadow-md transition-shadow hover:shadow-lg">
+                <CardContent className="p-0">
+                  <div className="flex flex-col lg:flex-row">
+                    {/* Quotation Info */}
+                    <div className="flex-1 p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div className="flex items-center gap-3">
+                          <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${status.color}`}>
+                            <status.icon className="h-6 w-6" />
+                          </div>
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-lg font-bold text-[#0F032D]">{quotation.id}</span>
+                              <Badge className={status.color}>{status.label}</Badge>
+                              {sentVia && (
+                                <Badge variant="outline" className="border-[#D0D0D8]">
+                                  <sentVia.icon className="mr-1 h-3 w-3" />
+                                  {sentVia.label}
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="font-medium text-[#0F032D]">{quotation.client}</p>
+                            {quotation.cancellationReason && (
+                              <p className="mt-1 text-xs text-red-600">
+                                Motivo: {quotation.cancellationReason}
+                              </p>
                             )}
                           </div>
-                          <p className="font-medium text-[#0F032D]">{quotation.client}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-2xl font-bold text-[#0F032D]">{quotation.total}</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-[#0F032D]">{quotation.total}</p>
+
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        <div className="flex items-center gap-2 text-sm text-[#0F032D]/70">
+                          <Phone className="h-4 w-4 shrink-0" />
+                          {quotation.phone}
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-[#0F032D]/70">
+                          <Calendar className="h-4 w-4 shrink-0" />
+                          Criado: {quotation.createdAt}
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-[#0F032D]/70">
+                          <Clock className="h-4 w-4 shrink-0" />
+                          Valido até: {quotation.validUntil}
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-[#0F032D]/70">
+                          <Calendar className="h-4 w-4 shrink-0" />
+                          Evento: {quotation.eventDate}
+                        </div>
+                      </div>
+
+                      <div className="mt-4">
+                        <p className="text-sm font-medium text-[#0F032D]/70">Itens:</p>
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          {quotation.items.map((item, i) => (
+                            <Badge key={i} variant="outline" className="border-[#D0D0D8]">
+                              {item.qty}x {item.name}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
                     </div>
 
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                      <div className="flex items-center gap-2 text-sm text-[#0F032D]/70">
-                        <Phone className="h-4 w-4 shrink-0" />
-                        {quotation.phone}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-[#0F032D]/70">
-                        <Calendar className="h-4 w-4 shrink-0" />
-                        Criado: {quotation.createdAt}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-[#0F032D]/70">
-                        <Clock className="h-4 w-4 shrink-0" />
-                        Valido até: {quotation.validUntil}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-[#0F032D]/70">
-                        <Calendar className="h-4 w-4 shrink-0" />
-                        Evento: {quotation.eventDate}
-                      </div>
-                    </div>
-
-                    <div className="mt-4">
-                      <p className="text-sm font-medium text-[#0F032D]/70">Itens:</p>
-                      <div className="mt-1 flex flex-wrap gap-2">
-                        {quotation.items.map((item, i) => (
-                          <Badge key={i} variant="outline" className="border-[#D0D0D8]">
-                            {item.qty}x {item.name}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center justify-end gap-2 border-t border-[#EFEFEF] bg-[#EFEFEF]/50 p-4 lg:w-56 lg:flex-col lg:justify-center lg:border-l lg:border-t-0">
-                    {quotation.status === "accepted" && (
-                      <Button 
-                        size="sm" 
-                        className="flex-1 bg-[#905BF4] text-white hover:bg-[#4E2BCC] lg:w-full"
-                        onClick={() => setConvertDialog({ open: true, quote: quotation })}
-                      >
-                        <Package className="mr-2 h-4 w-4" />
-                        Converter em Pedido
-                      </Button>
-                    )}
-                    {quotation.status === "draft" && (
-                      <Button 
-                        size="sm" 
-                        className="flex-1 bg-[#905BF4] text-white hover:bg-[#4E2BCC] lg:w-full"
-                        onClick={() => setWhatsappDialog({ open: true, quote: quotation })}
-                      >
-                        <Send className="mr-2 h-4 w-4" />
-                        Enviar
-                      </Button>
-                    )}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button size="sm" variant="outline" className="flex-1 lg:w-full">
-                          <MoreVertical className="mr-2 h-4 w-4" />
-                          Ações
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setViewDialog({ open: true, quote: quotation })}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          Visualizar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/orcamentos/novo?edit=${quotation.id}`}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Editar
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDuplicate(quotation)}>
-                          <Copy className="mr-2 h-4 w-4" />
-                          Duplicar
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => {
-                          handleSend(quotation, "pdf")
-                        }}>
-                          <FileDown className="mr-2 h-4 w-4" />
-                          Baixar PDF
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setWhatsappDialog({ open: true, quote: quotation })}>
-                          <MessageCircle className="mr-2 h-4 w-4" />
-                          Gerar Texto (WhatsApp)
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          className="text-red-600"
-                          onClick={() => setDeleteDialog({ open: true, quoteId: quotation.id })}
+                    {/* Actions */}
+                    <div className="flex items-center justify-end gap-2 border-t border-[#EFEFEF] bg-[#EFEFEF]/50 p-4 lg:w-56 lg:flex-col lg:justify-center lg:border-l lg:border-t-0">
+                      {quotation.status === "accepted" && (
+                        <Button 
+                          size="sm" 
+                          className="flex-1 bg-[#905BF4] text-white hover:bg-[#4E2BCC] lg:w-full"
+                          onClick={() => setConvertDialog({ open: true, quote: quotation })}
                         >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          <Package className="mr-2 h-4 w-4" />
+                          Converter em Pedido
+                        </Button>
+                      )}
+                      {quotation.status === "draft" && (
+                        <Button 
+                          size="sm" 
+                          className="flex-1 bg-[#905BF4] text-white hover:bg-[#4E2BCC] lg:w-full"
+                          onClick={() => setWhatsappDialog({ open: true, quote: quotation })}
+                        >
+                          <Send className="mr-2 h-4 w-4" />
+                          Enviar
+                        </Button>
+                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="outline" className="flex-1 lg:w-full">
+                            <MoreVertical className="mr-2 h-4 w-4" />
+                            Ações
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setViewDialog({ open: true, quote: quotation })}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Visualizar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/orcamentos/novo?edit=${quotation.id}`}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Editar
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDuplicate(quotation)}>
+                            <Copy className="mr-2 h-4 w-4" />
+                            Duplicar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleSend(quotation, "pdf")}>
+                            <FileDown className="mr-2 h-4 w-4" />
+                            Baixar PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setWhatsappDialog({ open: true, quote: quotation })}>
+                            <MessageCircle className="mr-2 h-4 w-4" />
+                            Gerar Texto (WhatsApp)
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => {
+                            setNewStatus(quotation.status as QuoteStatus)
+                            setStatusDialog({ open: true, quote: quotation })
+                          }}>
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            Alterar Status
+                          </DropdownMenuItem>
+                          {quotation.status !== "cancelled" && (
+                            <DropdownMenuItem 
+                              className="text-amber-600"
+                              onClick={() => setCancelDialog({ open: true, quote: quotation })}
+                            >
+                              <Ban className="mr-2 h-4 w-4" />
+                              Cancelar Orçamento
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            className="text-red-600"
+                            onClick={() => setDeleteDialog({ open: true, quoteId: quotation.id })}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          )
-        })}
+                </CardContent>
+              </Card>
+            )
+          })
+        )}
       </div>
 
       {/* Delete Dialog */}
-      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, quoteId: open ? deleteDialog.quoteId : null })}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Orçamento</AlertDialogTitle>
-            <AlertDialogDescription>
+      <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, quoteId: open ? deleteDialog.quoteId : null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Excluir Orçamento</DialogTitle>
+            <DialogDescription>
               Tem certeza que deseja excluir o orçamento {deleteDialog.quoteId}? 
               Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              className="bg-red-600 hover:bg-red-700"
-              onClick={handleDelete}
-            >
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialog({ open: false, quoteId: null })}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={isLoading}>
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Sim, excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancel Dialog */}
+      <Dialog open={cancelDialog.open} onOpenChange={(open) => {
+        setCancelDialog({ open, quote: open ? cancelDialog.quote : null })
+        if (!open) {
+          setCancelReason("")
+          setCancelDetails("")
+        }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-600">
+              <Ban className="h-5 w-5" />
+              Cancelar Orçamento
+            </DialogTitle>
+            <DialogDescription>
+              Cancelar o orçamento {cancelDialog.quote?.id}. Informe o motivo para registro.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Motivo do Cancelamento *</Label>
+              <Select value={cancelReason} onValueChange={setCancelReason}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o motivo..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {QUOTATION_CANCELLATION_REASONS.map((reason) => (
+                    <SelectItem key={reason.id} value={reason.id}>
+                      {reason.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Detalhes Adicionais</Label>
+              <Textarea
+                placeholder="Informações adicionais sobre o cancelamento..."
+                value={cancelDetails}
+                onChange={(e) => setCancelDetails(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelDialog({ open: false, quote: null })}>
+              Voltar
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleCancel}
+              disabled={!cancelReason || isLoading}
+            >
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Confirmar Cancelamento
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Status Update Dialog */}
+      <Dialog open={statusDialog.open} onOpenChange={(open) => setStatusDialog({ open, quote: open ? statusDialog.quote : null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Alterar Status do Orçamento</DialogTitle>
+            <DialogDescription>
+              Alterar o status do orçamento {statusDialog.quote?.id}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label>Novo Status</Label>
+            <Select value={newStatus} onValueChange={(v) => setNewStatus(v as QuoteStatus)}>
+              <SelectTrigger className="mt-2">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(statusConfig).filter(([key]) => key !== "cancelled").map(([key, config]) => (
+                  <SelectItem key={key} value={key}>
+                    <div className="flex items-center gap-2">
+                      <config.icon className="h-4 w-4" />
+                      {config.label}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setStatusDialog({ open: false, quote: null })}>
+              Cancelar
+            </Button>
+            <Button 
+              className="bg-[#905BF4] hover:bg-[#4E2BCC]"
+              onClick={handleUpdateStatus}
+              disabled={isLoading}
+            >
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* View Dialog */}
       <Dialog open={viewDialog.open} onOpenChange={(open) => setViewDialog({ open, quote: open ? viewDialog.quote : null })}>
@@ -509,24 +726,19 @@ export default function OrcamentosPage() {
                   </div>
                 </div>
               </div>
+
+              {viewDialog.quote.cancellationReason && (
+                <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+                  <p className="text-sm font-medium text-red-700">Motivo do Cancelamento:</p>
+                  <p className="text-sm text-red-600">{viewDialog.quote.cancellationReason}</p>
+                </div>
+              )}
             </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setViewDialog({ open: false, quote: null })}>
               Fechar
             </Button>
-            {viewDialog.quote?.status === "accepted" && (
-              <Button 
-                className="bg-[#905BF4] hover:bg-[#4E2BCC]"
-                onClick={() => {
-                  setViewDialog({ open: false, quote: null })
-                  setConvertDialog({ open: true, quote: viewDialog.quote })
-                }}
-              >
-                <Package className="mr-2 h-4 w-4" />
-                Converter em Pedido
-              </Button>
-            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -535,8 +747,10 @@ export default function OrcamentosPage() {
       <Dialog open={whatsappDialog.open} onOpenChange={(open) => setWhatsappDialog({ open, quote: open ? whatsappDialog.quote : null })}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Texto para WhatsApp</DialogTitle>
-            <DialogDescription>Copie o texto abaixo e envie para o cliente</DialogDescription>
+            <DialogTitle>Enviar via WhatsApp</DialogTitle>
+            <DialogDescription>
+              Copie o texto abaixo para enviar ao cliente
+            </DialogDescription>
           </DialogHeader>
           {whatsappDialog.quote && (
             <div className="space-y-4">
@@ -549,22 +763,21 @@ export default function OrcamentosPage() {
               <div className="flex gap-2">
                 <Button 
                   className="flex-1"
+                  variant="outline"
                   onClick={() => {
                     navigator.clipboard.writeText(generateWhatsAppText(whatsappDialog.quote!))
-                    alert("Texto copiado para a área de transferência!")
+                    toast({ title: "Texto copiado!", description: "Cole no WhatsApp para enviar." })
                   }}
                 >
                   <Copy className="mr-2 h-4 w-4" />
                   Copiar Texto
                 </Button>
                 <Button 
-                  variant="outline"
-                  className="flex-1"
+                  className="flex-1 bg-green-600 hover:bg-green-700"
                   onClick={() => {
-                    const text = encodeURIComponent(generateWhatsAppText(whatsappDialog.quote!))
-                    const phone = whatsappDialog.quote!.phone.replace(/\D/g, '')
-                    window.open(`https://wa.me/55${phone}?text=${text}`, '_blank')
                     handleSend(whatsappDialog.quote!, "whatsapp")
+                    const text = encodeURIComponent(generateWhatsAppText(whatsappDialog.quote!))
+                    window.open(`https://wa.me/${whatsappDialog.quote!.phone.replace(/\D/g, '')}?text=${text}`, '_blank')
                     setWhatsappDialog({ open: false, quote: null })
                   }}
                 >
@@ -574,35 +787,33 @@ export default function OrcamentosPage() {
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setWhatsappDialog({ open: false, quote: null })}>
-              Fechar
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Convert Dialog */}
-      <AlertDialog open={convertDialog.open} onOpenChange={(open) => setConvertDialog({ open, quote: open ? convertDialog.quote : null })}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Converter em Pedido</AlertDialogTitle>
-            <AlertDialogDescription>
-              Deseja converter o orçamento {convertDialog.quote?.id} em um pedido? 
-              Você será redirecionado para completar os dados do pedido.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
+      <Dialog open={convertDialog.open} onOpenChange={(open) => setConvertDialog({ open, quote: open ? convertDialog.quote : null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Converter em Pedido</DialogTitle>
+            <DialogDescription>
+              Deseja converter o orçamento {convertDialog.quote?.id} em um novo pedido?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConvertDialog({ open: false, quote: null })}>
+              Cancelar
+            </Button>
+            <Button 
               className="bg-[#905BF4] hover:bg-[#4E2BCC]"
               onClick={handleConvertToOrder}
+              disabled={isLoading}
             >
-              Sim, converter em pedido
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Converter
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
