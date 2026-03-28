@@ -746,39 +746,221 @@ function SecaoDocumentos() {
 }
 
 function SecaoLogistica() {
+  const [logisticaInternaAtiva, setLogisticaInternaAtiva] = useState(true)
+  
   return (
-    <Card className="border-none shadow-md">
-      <CardHeader>
-        <CardTitle>Configurações Logísticas</CardTitle>
-        <CardDescription>Configure opções de entrega e retirada</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center justify-between rounded-lg border p-4">
-          <div>
-            <p className="font-medium">Permitir agendamento no mesmo dia</p>
-            <p className="text-sm text-muted-foreground">Clientes podem agendar entregas para o mesmo dia</p>
+    <div className="space-y-6">
+      {/* Logística Interna */}
+      <Card className="border-none shadow-md">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-[#905BF4]/10 p-2">
+                <Truck className="h-5 w-5 text-[#905BF4]" />
+              </div>
+              <div>
+                <CardTitle>Logística Interna</CardTitle>
+                <CardDescription>
+                  Habilite para controlar separação e conferência de mercadorias no armazém
+                </CardDescription>
+              </div>
+            </div>
+            <Switch 
+              checked={logisticaInternaAtiva} 
+              onCheckedChange={setLogisticaInternaAtiva} 
+            />
           </div>
-          <Switch defaultChecked />
-        </div>
-        <div className="flex items-center justify-between rounded-lg border p-4">
-          <div>
-            <p className="font-medium">Antecedência mínima</p>
-            <p className="text-sm text-muted-foreground">Horas de antecedência para agendamento</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-lg bg-[#EFEFEF] p-4">
+            <h4 className="font-semibold text-[#0F032D] mb-3">Fluxo de Status Logísticos</h4>
+            <p className="text-sm text-muted-foreground mb-4">
+              Entenda como cada status funciona e quem é responsável por cada etapa:
+            </p>
+            
+            {/* Fluxo de Entrega */}
+            <div className="mb-6">
+              <h5 className="font-medium text-[#905BF4] mb-2 flex items-center gap-2">
+                <Badge className="bg-[#905BF4]/10 text-[#905BF4]">Fluxo de Entrega</Badge>
+              </h5>
+              <div className="space-y-2 text-sm">
+                {logisticaInternaAtiva && (
+                  <>
+                    <div className="flex items-start gap-2">
+                      <Badge className="bg-amber-100 text-amber-800 shrink-0">1. A Separar</Badge>
+                      <span className="text-muted-foreground">Pedido aprovado aguardando separação no estoque. <span className="font-medium text-[#0F032D]">(Responsável: Estoquista)</span></span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Badge className="bg-orange-100 text-orange-800 shrink-0">2. Separado</Badge>
+                      <span className="text-muted-foreground">Mercadoria separada e pronta para carregar. <span className="font-medium text-[#0F032D]">(Responsável: Estoquista)</span></span>
+                    </div>
+                  </>
+                )}
+                <div className="flex items-start gap-2">
+                  <Badge className="bg-blue-100 text-blue-800 shrink-0">{logisticaInternaAtiva ? "3" : "1"}. Saiu para Entrega</Badge>
+                  <span className="text-muted-foreground">Quando inicia-se uma rota em que o pedido será entregue. <span className="font-medium text-[#0F032D]">(Automático: Início da rota)</span></span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Badge className="bg-purple-100 text-purple-800 shrink-0">{logisticaInternaAtiva ? "4" : "2"}. Entregue</Badge>
+                  <span className="text-muted-foreground">Mercadoria entregue no local do evento. <span className="font-medium text-[#0F032D]">(Responsável: Motorista - via app de rota)</span></span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Fluxo de Retirada */}
+            <div className="mb-6">
+              <h5 className="font-medium text-[#4E2BCC] mb-2 flex items-center gap-2">
+                <Badge className="bg-[#4E2BCC]/10 text-[#4E2BCC]">Fluxo de Retirada</Badge>
+              </h5>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-start gap-2">
+                  <Badge className="bg-blue-100 text-blue-800 shrink-0">1. Saiu para Retirada</Badge>
+                  <span className="text-muted-foreground">Quando inicia-se uma rota de retirada. <span className="font-medium text-[#0F032D]">(Automático: Início da rota)</span></span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Badge className="bg-purple-100 text-purple-800 shrink-0">2. Retirado</Badge>
+                  <span className="text-muted-foreground">Mercadoria retirada do local do evento. <span className="font-medium text-[#0F032D]">(Responsável: Motorista - via app de rota)</span></span>
+                </div>
+                {logisticaInternaAtiva ? (
+                  <>
+                    <div className="flex items-start gap-2">
+                      <Badge className="bg-amber-100 text-amber-800 shrink-0">3. A Conferir</Badge>
+                      <span className="text-muted-foreground">Mercadoria aguardando conferência no retorno ao armazém. <span className="font-medium text-[#0F032D]">(Responsável: Estoquista)</span></span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Badge className="bg-green-100 text-green-800 shrink-0">4. Conferido/Concluído</Badge>
+                      <span className="text-muted-foreground">Mercadoria conferida e devolvida ao estoque. <span className="font-medium text-[#0F032D]">(Responsável: Estoquista)</span></span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-start gap-2">
+                    <Badge className="bg-green-100 text-green-800 shrink-0">3. Concluído</Badge>
+                    <span className="text-muted-foreground">Mercadoria retornada. <span className="font-medium text-[#0F032D]">(Responsável: Motorista marca ao chegar com a retirada)</span></span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Navegação do Motorista */}
+            <div className="rounded-lg bg-white p-3 border">
+              <h5 className="font-medium text-[#0F032D] mb-2">App do Motorista</h5>
+              <p className="text-sm text-muted-foreground">
+                O motorista acessa a navegação da rota integrada com o Google Maps. 
+                Durante a rota, ele pode marcar cada parada como "Entregue" ou "Retirado" diretamente pelo celular.
+                {!logisticaInternaAtiva && " Ao retornar ao armazém com as retiradas, o motorista marca como 'Concluído'."}
+              </p>
+            </div>
           </div>
-          <Select defaultValue="2">
-            <SelectTrigger className="w-24">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="0">0h</SelectItem>
-              <SelectItem value="2">2h</SelectItem>
-              <SelectItem value="4">4h</SelectItem>
-              <SelectItem value="24">24h</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </CardContent>
-    </Card>
+
+          {logisticaInternaAtiva && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+              <p className="text-sm text-amber-800">
+                <strong>Logística Interna Ativa:</strong> Serão exibidos os status "A Separar", "Separado", "A Conferir" e "Conferido" para controle de armazém.
+              </p>
+            </div>
+          )}
+
+          {!logisticaInternaAtiva && (
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+              <p className="text-sm text-blue-800">
+                <strong>Logística Interna Desativada:</strong> O fluxo será simplificado. Apenas status de rota (Saiu para Entrega/Retirada) e conclusão pelo motorista.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Opções de Agendamento */}
+      <Card className="border-none shadow-md">
+        <CardHeader>
+          <CardTitle>Opções de Agendamento</CardTitle>
+          <CardDescription>Configure regras para agendamento de entregas e retiradas</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between rounded-lg border p-4">
+            <div>
+              <p className="font-medium">Permitir agendamento no mesmo dia</p>
+              <p className="text-sm text-muted-foreground">Clientes podem agendar entregas para o mesmo dia</p>
+            </div>
+            <Switch defaultChecked />
+          </div>
+          <div className="flex items-center justify-between rounded-lg border p-4">
+            <div>
+              <p className="font-medium">Antecedência mínima</p>
+              <p className="text-sm text-muted-foreground">Horas de antecedência para agendamento</p>
+            </div>
+            <Select defaultValue="2">
+              <SelectTrigger className="w-24">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">0h</SelectItem>
+                <SelectItem value="2">2h</SelectItem>
+                <SelectItem value="4">4h</SelectItem>
+                <SelectItem value="24">24h</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center justify-between rounded-lg border p-4">
+            <div>
+              <p className="font-medium">Raio máximo de atendimento</p>
+              <p className="text-sm text-muted-foreground">Distância máxima para entregas</p>
+            </div>
+            <Select defaultValue="50">
+              <SelectTrigger className="w-28">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="20">20 km</SelectItem>
+                <SelectItem value="50">50 km</SelectItem>
+                <SelectItem value="100">100 km</SelectItem>
+                <SelectItem value="0">Sem limite</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Motoristas */}
+      <Card className="border-none shadow-md">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Motoristas</CardTitle>
+              <CardDescription>Gerencie os motoristas cadastrados</CardDescription>
+            </div>
+            <Button size="sm" className="bg-[#905BF4] hover:bg-[#4E2BCC]">
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Motorista
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {[
+              { nome: "João Motorista", telefone: "(11) 99999-1111", status: "Ativo" },
+              { nome: "Pedro Entregador", telefone: "(11) 99999-2222", status: "Ativo" },
+              { nome: "Carlos Silva", telefone: "(11) 99999-3333", status: "Inativo" },
+            ].map((motorista) => (
+              <div key={motorista.nome} className="flex items-center justify-between rounded-lg border p-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-[#4E2BCC] flex items-center justify-center text-white font-medium">
+                    {motorista.nome.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <div>
+                    <p className="font-medium">{motorista.nome}</p>
+                    <p className="text-sm text-muted-foreground">{motorista.telefone}</p>
+                  </div>
+                </div>
+                <Badge variant={motorista.status === "Ativo" ? "default" : "secondary"}>
+                  {motorista.status}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 

@@ -89,7 +89,11 @@ const documentosRecentes = [
 ]
 
 export default function DocumentosPage() {
-  const { planoAtual, adicionaisAtivos, pacotesAtivos } = useOrganizacaoStore()
+  const { configuracao } = useOrganizacaoStore()
+  const planoAtual = configuracao?.plano || "starter"
+  const adicionaisAtivos = configuracao?.adicionaisAtivos || []
+  const pacotesAtivos = configuracao?.pacotesAtivos || []
+  
   const [dialogAberto, setDialogAberto] = useState(false)
   const [tipoSelecionado, setTipoSelecionado] = useState<string | null>(null)
   const [busca, setBusca] = useState("")

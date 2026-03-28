@@ -23,6 +23,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import {
   LayoutDashboard,
   Users,
   Calculator,
@@ -50,9 +55,13 @@ import {
   Building2,
   PanelLeftClose,
   Lock,
+  FolderOpen,
+  TrendingUp,
+  BadgeDollarSign,
+  ClipboardList,
 } from "lucide-react"
 import { SeletorPlano } from "@/components/seletor-plano"
-import { useEntitlements, useOrganizacaoStore } from "@/store/organizacao"
+import { useEntitlements, useOrganizacaoStore, useStoreHydration } from "@/store/organizacao"
 import { PLANOS } from "@/store/dados/planos"
 import type { Entitlements } from "@/store/tipos/plano"
 import { cn } from "@/lib/utils"
@@ -69,19 +78,58 @@ interface ItemNavegacao {
   planoMinimo?: string
 }
 
-const navegacaoPrincipal: ItemNavegacao[] = [
-  { nome: "Dashboard", href: "/dashboard", icone: LayoutDashboard, funcionalidade: null },
-  { nome: "Contatos", href: "/dashboard/contatos", icone: Users, funcionalidade: "gestaoContatos" },
-  { nome: "Orçamentos", href: "/dashboard/orcamentos", icone: Calculator, funcionalidade: "gestaoOrcamentos" },
-  { nome: "Pedidos", href: "/dashboard/pedidos", icone: Package, funcionalidade: "gestaoPedidos" },
-  { nome: "Logística", href: "/dashboard/logistica", icone: Truck, funcionalidade: "criarRotaLogistica", planoMinimo: "Pro" },
-  { nome: "Inventário", href: "/dashboard/inventario", icone: Boxes, funcionalidade: "gerenciarProdutos" },
-  { nome: "Armazéns", href: "/dashboard/armazens", icone: Building2, funcionalidade: "gerenciarArmazens", planoMinimo: "Enterprise" },
-  { nome: "Estoque", href: "/dashboard/estoque", icone: Warehouse, funcionalidade: "atualizarEstoqueAluguel", planoMinimo: "Pro" },
-  { nome: "Financeiro", href: "/dashboard/financeiro", icone: CreditCard, funcionalidade: "gerenciarFaturas" },
-  { nome: "Contábil", href: "/dashboard/contabil", icone: FileText, funcionalidade: null },
-  { nome: "Parceiros", href: "/dashboard/parceiros", icone: HandshakeIcon, funcionalidade: "programaParceiros", planoMinimo: "Adicional" },
-  { nome: "Configurações", href: "/dashboard/configuracoes", icone: Settings, funcionalidade: null },
+interface SecaoNavegacao {
+  titulo: string
+  icone: React.ElementType
+  itens: ItemNavegacao[]
+}
+
+// Menu organizado em seções
+const menuPrincipal: SecaoNavegacao[] = [
+  {
+    titulo: "Principal",
+    icone: LayoutDashboard,
+    itens: [
+      { nome: "Dashboard", href: "/dashboard", icone: LayoutDashboard, funcionalidade: null },
+    ]
+  },
+  {
+    titulo: "Cadastros",
+    icone: FolderOpen,
+    itens: [
+      { nome: "Contatos", href: "/dashboard/contatos", icone: Users, funcionalidade: "gestaoContatos" },
+      { nome: "Orçamentos", href: "/dashboard/orcamentos", icone: Calculator, funcionalidade: "gestaoOrcamentos" },
+      { nome: "Pedidos", href: "/dashboard/pedidos", icone: Package, funcionalidade: "gestaoPedidos" },
+      { nome: "Inventário", href: "/dashboard/inventario", icone: Boxes, funcionalidade: "gerenciarProdutos" },
+      { nome: "Armazéns", href: "/dashboard/armazens", icone: Building2, funcionalidade: "gerenciarArmazens", planoMinimo: "Enterprise" },
+    ]
+  },
+  {
+    titulo: "Logística",
+    icone: Truck,
+    itens: [
+      { nome: "Roteirização", href: "/dashboard/logistica", icone: Truck, funcionalidade: "criarRotaLogistica", planoMinimo: "Pro" },
+      { nome: "Estoque", href: "/dashboard/estoque", icone: Warehouse, funcionalidade: "atualizarEstoqueAluguel", planoMinimo: "Pro" },
+    ]
+  },
+  {
+    titulo: "Financeiro",
+    icone: BadgeDollarSign,
+    itens: [
+      { nome: "Financeiro", href: "/dashboard/financeiro", icone: CreditCard, funcionalidade: "gerenciarFaturas" },
+      { nome: "Cobrança", href: "/dashboard/cobranca", icone: Receipt, funcionalidade: "gerenciarFaturas" },
+      { nome: "Contábil", href: "/dashboard/contabil", icone: FileText, funcionalidade: null },
+      { nome: "Documentos", href: "/dashboard/documentos", icone: ClipboardList, funcionalidade: null },
+    ]
+  },
+  {
+    titulo: "Outros",
+    icone: Settings,
+    itens: [
+      { nome: "Parceiros", href: "/dashboard/parceiros", icone: HandshakeIcon, funcionalidade: "programaParceiros", planoMinimo: "Adicional" },
+      { nome: "Configurações", href: "/dashboard/configuracoes", icone: Settings, funcionalidade: null },
+    ]
+  },
 ]
 
 const menuSuporte = [
@@ -107,10 +155,18 @@ export default function DashboardLayout({
   const [sidebarRecolhida, setSidebarRecolhida] = useState(false)
   const [suporteAberto, setSuporteAberto] = useState(false)
   const [gerenciamentoAberto, setGerenciamentoAberto] = useState(false)
+  const [secoesAbertas, setSecoesAbertas] = useState<Record<string, boolean>>({
+    "Principal": true,
+    "Cadastros": true,
+    "Logística": true,
+    "Financeiro": true,
+    "Outros": true,
+  })
   
+  const hydrated = useStoreHydration()
   const entitlements = useEntitlements()
   const { configuracao } = useOrganizacaoStore()
-  const planoAtual = PLANOS[configuracao.plano]
+  const planoAtual = hydrated ? PLANOS[configuracao.plano] : PLANOS["starter"]
 
   // Persistir estado recolhido
   useEffect(() => {
@@ -126,9 +182,27 @@ export default function DashboardLayout({
     localStorage.setItem("sidebar-recolhida", JSON.stringify(novoEstado))
   }
 
+  const alternarSecao = (titulo: string) => {
+    setSecoesAbertas(prev => ({
+      ...prev,
+      [titulo]: !prev[titulo]
+    }))
+  }
+
   const verificarAcesso = (item: ItemNavegacao): boolean => {
     if (!item.funcionalidade) return true
     return entitlements[item.funcionalidade]
+  }
+
+  const encontrarPaginaAtual = () => {
+    for (const secao of menuPrincipal) {
+      for (const item of secao.itens) {
+        if (pathname === item.href || pathname.startsWith(item.href + "/")) {
+          return item.nome
+        }
+      }
+    }
+    return "Dashboard"
   }
 
   return (
@@ -206,63 +280,111 @@ export default function DashboardLayout({
           {/* Navegação */}
           <ScrollArea className="flex-1 py-4">
             <nav className={cn("space-y-1", sidebarRecolhida ? "px-2" : "px-3")}>
-              {navegacaoPrincipal.map((item) => {
-                const estaAtivo = pathname === item.href || pathname.startsWith(item.href + "/")
-                const temAcesso = verificarAcesso(item)
-                
-                const conteudoLink = (
-                  <Link
-                    href={temAcesso ? item.href : "#"}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                      estaAtivo
-                        ? "bg-[#905BF4] text-white"
-                        : temAcesso
-                        ? "text-white/60 hover:bg-white/10 hover:text-white"
-                        : "text-white/30 cursor-not-allowed",
-                      sidebarRecolhida && "justify-center px-2"
-                    )}
-                    onClick={(e) => {
-                      if (!temAcesso) e.preventDefault()
-                      else setSidebarAberta(false)
-                    }}
-                  >
-                    <item.icone className="h-5 w-5 shrink-0" />
-                    {!sidebarRecolhida && (
-                      <>
-                        <span className="flex-1">{item.nome}</span>
-                        {!temAcesso && (
-                          <div className="flex items-center gap-1">
-                            <Lock className="h-3 w-3" />
-                            <Badge className="bg-white/10 text-white/50 text-[10px] px-1">
-                              {item.planoMinimo || "PRO"}
-                            </Badge>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </Link>
-                )
-
+              {menuPrincipal.map((secao) => {
+                // Se sidebar recolhida, mostrar apenas ícones dos itens
                 if (sidebarRecolhida) {
                   return (
-                    <Tooltip key={item.nome}>
-                      <TooltipTrigger asChild>
-                        {conteudoLink}
-                      </TooltipTrigger>
-                      <TooltipContent side="right" className="flex items-center gap-2">
-                        {item.nome}
-                        {!temAcesso && (
-                          <Badge className="text-[10px]">
-                            {item.planoMinimo || "PRO"}
-                          </Badge>
-                        )}
-                      </TooltipContent>
-                    </Tooltip>
+                    <div key={secao.titulo} className="space-y-1">
+                      {secao.itens.map((item) => {
+                        const estaAtivo = pathname === item.href || pathname.startsWith(item.href + "/")
+                        const temAcesso = verificarAcesso(item)
+                        
+                        return (
+                          <Tooltip key={item.nome}>
+                            <TooltipTrigger asChild>
+                              <Link
+                                href={temAcesso ? item.href : "#"}
+                                className={cn(
+                                  "flex items-center justify-center rounded-lg p-2 transition-colors",
+                                  estaAtivo
+                                    ? "bg-[#905BF4] text-white"
+                                    : temAcesso
+                                    ? "text-white/60 hover:bg-white/10 hover:text-white"
+                                    : "text-white/30 cursor-not-allowed"
+                                )}
+                                onClick={(e) => {
+                                  if (!temAcesso) e.preventDefault()
+                                  else setSidebarAberta(false)
+                                }}
+                              >
+                                <item.icone className="h-5 w-5" />
+                              </Link>
+                            </TooltipTrigger>
+                            <TooltipContent side="right" className="flex items-center gap-2">
+                              {item.nome}
+                              {!temAcesso && (
+                                <Badge className="text-[10px]">
+                                  {item.planoMinimo || "PRO"}
+                                </Badge>
+                              )}
+                            </TooltipContent>
+                          </Tooltip>
+                        )
+                      })}
+                      {secao.titulo !== "Outros" && (
+                        <div className="my-2 border-t border-white/10" />
+                      )}
+                    </div>
                   )
                 }
 
-                return <div key={item.nome}>{conteudoLink}</div>
+                // Sidebar expandida - mostrar seções colapsáveis
+                return (
+                  <Collapsible
+                    key={secao.titulo}
+                    open={secoesAbertas[secao.titulo]}
+                    onOpenChange={() => alternarSecao(secao.titulo)}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <button className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider text-white/40 hover:text-white/60">
+                        <div className="flex items-center gap-2">
+                          <secao.icone className="h-4 w-4" />
+                          {secao.titulo}
+                        </div>
+                        <ChevronDown className={cn(
+                          "h-3 w-3 transition-transform",
+                          secoesAbertas[secao.titulo] && "rotate-180"
+                        )} />
+                      </button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-1 pt-1">
+                      {secao.itens.map((item) => {
+                        const estaAtivo = pathname === item.href || pathname.startsWith(item.href + "/")
+                        const temAcesso = verificarAcesso(item)
+                        
+                        return (
+                          <Link
+                            key={item.nome}
+                            href={temAcesso ? item.href : "#"}
+                            className={cn(
+                              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                              estaAtivo
+                                ? "bg-[#905BF4] text-white"
+                                : temAcesso
+                                ? "text-white/60 hover:bg-white/10 hover:text-white"
+                                : "text-white/30 cursor-not-allowed"
+                            )}
+                            onClick={(e) => {
+                              if (!temAcesso) e.preventDefault()
+                              else setSidebarAberta(false)
+                            }}
+                          >
+                            <item.icone className="h-5 w-5 shrink-0" />
+                            <span className="flex-1">{item.nome}</span>
+                            {!temAcesso && (
+                              <div className="flex items-center gap-1">
+                                <Lock className="h-3 w-3" />
+                                <Badge className="bg-white/10 text-white/50 text-[10px] px-1">
+                                  {item.planoMinimo || "PRO"}
+                                </Badge>
+                              </div>
+                            )}
+                          </Link>
+                        )
+                      })}
+                    </CollapsibleContent>
+                  </Collapsible>
+                )
               })}
             </nav>
 
@@ -332,7 +454,7 @@ export default function DashboardLayout({
                     className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-white/60 hover:bg-white/10 hover:text-white"
                   >
                     <div className="flex items-center gap-3">
-                      <Settings className="h-5 w-5" />
+                      <TrendingUp className="h-5 w-5" />
                       Gerenciamento
                     </div>
                     <ChevronDown className={cn("h-4 w-4 transition-transform", gerenciamentoAberto && "rotate-180")} />
@@ -418,7 +540,7 @@ export default function DashboardLayout({
               {/* Título da página */}
               <div className="hidden lg:block">
                 <h1 className="text-base font-semibold text-[#0F032D]">
-                  {navegacaoPrincipal.find(item => pathname === item.href || pathname.startsWith(item.href + "/"))?.nome || "Dashboard"}
+                  {encontrarPaginaAtual()}
                 </h1>
               </div>
             </div>
@@ -475,12 +597,17 @@ export default function DashboardLayout({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+                  <DropdownMenuLabel>
+                    <div>
+                      <p className="font-medium">DZ Locadora</p>
+                      <p className="text-xs text-muted-foreground">admin@dzlocadora.com</p>
+                    </div>
+                  </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard/perfil" className="flex items-center gap-2">
                       <User className="h-4 w-4" />
-                      Perfil
+                      Meu Perfil
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
@@ -490,8 +617,8 @@ export default function DashboardLayout({
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild className="text-red-600">
-                    <Link href="/" className="flex items-center gap-2">
+                  <DropdownMenuItem className="text-red-600" asChild>
+                    <Link href="/login" className="flex items-center gap-2">
                       <LogOut className="h-4 w-4" />
                       Sair
                     </Link>
@@ -502,7 +629,7 @@ export default function DashboardLayout({
           </header>
 
           {/* Conteúdo da página */}
-          <main className="flex-1 overflow-auto p-4 lg:p-6">
+          <main className="flex-1 overflow-auto p-4 md:p-6">
             {children}
           </main>
         </div>
